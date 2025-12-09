@@ -185,6 +185,41 @@ async function initDatabase() {
       FOREIGN KEY (product_id) REFERENCES products(id),
       FOREIGN KEY (original_sale_id) REFERENCES sales(sale_id)
     );
+
+    CREATE TABLE IF NOT EXISTS purchase_returns (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      return_id TEXT NOT NULL UNIQUE,
+      original_purchase_id INTEGER,
+      return_date TEXT NOT NULL,
+      return_time TEXT NOT NULL,
+      product_id INTEGER NOT NULL,
+      product_name TEXT NOT NULL,
+      quantity REAL NOT NULL,
+      unit TEXT NOT NULL,
+      rate_per_unit REAL NOT NULL,
+      credit_amount REAL NOT NULL,
+      reason TEXT,
+      processed_by TEXT,
+      supplier_id INTEGER,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (product_id) REFERENCES products(id),
+      FOREIGN KEY (original_purchase_id) REFERENCES purchases(id),
+      FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS supplier_credits (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      supplier_id INTEGER NOT NULL,
+      credit_amount REAL NOT NULL,
+      used_amount REAL DEFAULT 0,
+      remaining_amount REAL NOT NULL,
+      source_return_id TEXT,
+      notes TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
+      FOREIGN KEY (source_return_id) REFERENCES purchase_returns(return_id)
+    );
   `);
 
   // Run migration to add product_name column if it doesn't exist
@@ -1377,6 +1412,322 @@ ipcMain.handle('get-sale-return-items', async (event, returnId) => {
     return { success: true, data: items };
   } catch (error) {
     console.error('get-sale-return-items error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// ==================== PURCHASE RETURN HANDLERS ====================
+
+// Get purchase by ID for return processing
+ipcMain.handle('get-purchase-by-id', async (event, purchaseId) => {
+  try {
+    console.log('Getting purchase by ID:', purchaseId);
+
+    // Get purchase details
+    const purchaseResult = db.exec(`
+      SELECT
+        p.*,
+        prod.product_name,
+        s.supplier_name,
+        c.category_name,
+        sc.sub_category_name,
+        b.brand_name
+      FROM purchases p
+      LEFT JOIN products prod ON p.product_id = prod.id
+      LEFT JOIN suppliers s ON p.supplier_id = s.id
+      LEFT JOIN categories c ON p.category_id = c.id
+      LEFT JOIN sub_categories sc ON p.sub_category_id = sc.id
+      LEFT JOIN brands b ON p.brand_id = b.id
+      WHERE p.id = ?
+    `, [purchaseId]);
+
+    if (purchaseResult.length === 0 || purchaseResult[0].values.length === 0) {
+      return { success: false, error: 'Purchase not found' };
+    }
+
+    const purchase = resultToArray(purchaseResult)[0];
+
+    // Get previous returns for this purchase
+    const returnsResult = db.exec(`
+      SELECT
+        return_id,
+        product_id,
+        product_name,
+        quantity,
+        unit,
+        credit_amount,
+        return_date,
+        reason
+      FROM purchase_returns
+      WHERE original_purchase_id = ?
+      ORDER BY created_at DESC
+    `, [purchaseId]);
+
+    const previousReturns = returnsResult.length > 0 ? resultToArray(returnsResult) : [];
+
+    // Calculate total returned quantity
+    const totalReturned = previousReturns.reduce((sum, ret) => sum + (ret.quantity || 0), 0);
+    const remainingQuantity = (purchase.quantity || 0) - totalReturned;
+    const canReturn = remainingQuantity > 0;
+
+    // Format purchase as item for consistency with frontend
+    const item = {
+      purchase_id: purchase.id,
+      product_id: purchase.product_id,
+      product_name: purchase.product_name,
+      quantity: purchase.quantity,
+      unit: purchase.unit,
+      rate_per_unit: purchase.purchase_price,
+      total_returned: totalReturned,
+      remaining_quantity: remainingQuantity,
+      can_return: canReturn,
+      supplier_id: purchase.supplier_id,
+      supplier_name: purchase.supplier_name,
+      purchase_date: purchase.purchase_date
+    };
+
+    return {
+      success: true,
+      data: {
+        purchase: purchase,
+        item: item,
+        previousReturns: previousReturns
+      }
+    };
+  } catch (error) {
+    console.error('get-purchase-by-id error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Process purchase return
+ipcMain.handle('process-purchase-return', async (event, returnData) => {
+  try {
+    console.log('Processing purchase return:', returnData);
+
+    // Generate return ID
+    const countResult = db.exec(`
+      SELECT COUNT(DISTINCT return_id) as count FROM purchase_returns
+    `);
+    const count = countResult.length > 0 ? resultToArray(countResult)[0].count : 0;
+    const year = new Date().getFullYear();
+    const returnId = `PRET-${year}-${String(count + 1).padStart(6, '0')}`;
+
+    console.log('Generated return ID:', returnId);
+
+    // Insert return records for each item
+    for (const item of returnData.items) {
+      db.run(`
+        INSERT INTO purchase_returns (
+          return_id,
+          original_purchase_id,
+          return_date,
+          return_time,
+          product_id,
+          product_name,
+          quantity,
+          unit,
+          rate_per_unit,
+          credit_amount,
+          reason,
+          processed_by,
+          supplier_id,
+          notes
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        returnId,
+        returnData.original_purchase_id,
+        returnData.return_date,
+        returnData.return_time,
+        item.product_id,
+        item.product_name,
+        item.quantity,
+        item.unit,
+        item.rate_per_unit,
+        item.line_total,
+        returnData.reason || '',
+        returnData.returned_by,
+        returnData.supplier_id,
+        returnData.notes || ''
+      ]);
+
+      // REDUCE quantity from stock (opposite of sale returns)
+      let quantityToReduce = item.quantity;
+
+      // Convert to base unit if needed (grams to kg)
+      if (item.unit === 'g') {
+        quantityToReduce = item.quantity / 1000;
+      }
+
+      // Find the purchase record and reduce its quantity
+      db.run(`
+        UPDATE purchases
+        SET quantity = quantity - ?
+        WHERE id = ?
+      `, [quantityToReduce, returnData.original_purchase_id]);
+    }
+
+    // Create supplier credit record
+    const totalCreditAmount = returnData.total_credit_amount;
+    db.run(`
+      INSERT INTO supplier_credits (
+        supplier_id,
+        credit_amount,
+        used_amount,
+        remaining_amount,
+        source_return_id,
+        notes
+      ) VALUES (?, ?, ?, ?, ?, ?)
+    `, [
+      returnData.supplier_id,
+      totalCreditAmount,
+      0,
+      totalCreditAmount,
+      returnId,
+      returnData.notes || 'Credit from purchase return'
+    ]);
+
+    const dbPath = path.join(app.getPath('userData'), 'inventory.db');
+    saveDatabase(dbPath);
+
+    return { success: true, return_id: returnId };
+  } catch (error) {
+    console.error('process-purchase-return error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Get all purchase returns
+ipcMain.handle('get-purchase-returns', async (event) => {
+  try {
+    const result = db.exec(`
+      SELECT
+        pr.return_id,
+        pr.original_purchase_id,
+        pr.return_date,
+        pr.return_time,
+        SUM(pr.credit_amount) as total_credit_amount,
+        s.supplier_name,
+        pr.supplier_id,
+        pr.processed_by,
+        pr.created_at
+      FROM purchase_returns pr
+      LEFT JOIN suppliers s ON pr.supplier_id = s.id
+      GROUP BY pr.return_id, pr.original_purchase_id, pr.return_date, pr.return_time,
+               s.supplier_name, pr.supplier_id, pr.processed_by, pr.created_at
+      ORDER BY pr.created_at DESC
+    `);
+
+    const returns = result.length > 0 ? resultToArray(result) : [];
+    return { success: true, data: returns };
+  } catch (error) {
+    console.error('get-purchase-returns error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Get purchase return items by return ID
+ipcMain.handle('get-purchase-return-items', async (event, returnId) => {
+  try {
+    const result = db.exec(`
+      SELECT
+        pr.id,
+        pr.return_id,
+        pr.product_id,
+        pr.product_name,
+        pr.quantity,
+        pr.unit,
+        pr.rate_per_unit,
+        pr.credit_amount,
+        pr.reason,
+        pr.notes
+      FROM purchase_returns pr
+      WHERE pr.return_id = ?
+      ORDER BY pr.id ASC
+    `, [returnId]);
+
+    const items = result.length > 0 ? resultToArray(result) : [];
+    return { success: true, data: items };
+  } catch (error) {
+    console.error('get-purchase-return-items error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Get supplier credits
+ipcMain.handle('get-supplier-credits', async (event, supplierId) => {
+  try {
+    let query = `
+      SELECT
+        sc.*,
+        s.supplier_name
+      FROM supplier_credits sc
+      LEFT JOIN suppliers s ON sc.supplier_id = s.id
+    `;
+
+    const params = [];
+    if (supplierId) {
+      query += ' WHERE sc.supplier_id = ?';
+      params.push(supplierId);
+    }
+
+    query += ' ORDER BY sc.created_at DESC';
+
+    const result = db.exec(query, params);
+    const credits = result.length > 0 ? resultToArray(result) : [];
+    return { success: true, data: credits };
+  } catch (error) {
+    console.error('get-supplier-credits error:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Get all purchased items with returned quantities calculated (for purchase returns)
+ipcMain.handle('get-all-purchased-items', async (event) => {
+  try {
+    const result = db.exec(`
+      SELECT
+        p.id as purchase_id,
+        p.id as item_id,
+        p.product_id,
+        p.product_name,
+        p.item_barcode as sku,
+        p.quantity,
+        p.unit,
+        p.purchase_price as rate_per_unit,
+        p.supplier_id,
+        s.supplier_name,
+        c.category_name,
+        p.purchase_date,
+        p.mfg_date,
+        p.exp_date,
+        COALESCE(
+          (SELECT SUM(pr.quantity)
+           FROM purchase_returns pr
+           WHERE pr.product_id = p.product_id
+           AND pr.original_purchase_id = p.id),
+          0
+        ) as total_returned
+      FROM purchases p
+      LEFT JOIN suppliers s ON p.supplier_id = s.id
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.quantity > 0
+      ORDER BY p.purchase_date DESC, p.product_name ASC
+    `);
+
+    const purchases = result.length > 0 ? resultToArray(result) : [];
+
+    // Calculate remaining_quantity and filter in JavaScript
+    const items = purchases
+      .map(p => ({
+        ...p,
+        remaining_quantity: (p.quantity || 0) - (p.total_returned || 0)
+      }))
+      .filter(p => p.remaining_quantity > 0);
+
+    return { success: true, data: items };
+  } catch (error) {
+    console.error('get-all-purchased-items error:', error);
     return { success: false, error: error.message };
   }
 });

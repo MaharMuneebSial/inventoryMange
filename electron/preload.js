@@ -54,5 +54,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getSaleByInvoice: (invoiceNumber) => ipcRenderer.invoke('get-sale-by-invoice', invoiceNumber),
   processSaleReturn: (data) => ipcRenderer.invoke('process-sale-return', data),
   getSaleReturns: () => ipcRenderer.invoke('get-sale-returns'),
-  getSaleReturnItems: (returnId) => ipcRenderer.invoke('get-sale-return-items', returnId)
+  getSaleReturnItems: (returnId) => ipcRenderer.invoke('get-sale-return-items', returnId),
+
+  // Purchase Return APIs
+  getPurchaseById: (purchaseId) => ipcRenderer.invoke('get-purchase-by-id', purchaseId),
+  processPurchaseReturn: (data) => ipcRenderer.invoke('process-purchase-return', data),
+  getPurchaseReturns: () => ipcRenderer.invoke('get-purchase-returns'),
+  getPurchaseReturnItems: (returnId) => ipcRenderer.invoke('get-purchase-return-items', returnId),
+  getSupplierCredits: (supplierId) => ipcRenderer.invoke('get-supplier-credits', supplierId),
+  getAllPurchasedItems: () => ipcRenderer.invoke('get-all-purchased-items')
 });

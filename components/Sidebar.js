@@ -33,6 +33,8 @@ export default function Sidebar({ activePage = '' }) {
     { type: 'link', label: 'Return History', path: '/sale-return-list' },
     { type: 'link', label: 'Purchase', path: '/purchase' },
     { type: 'link', label: 'Total Purchases', path: '/purchase-list' },
+    { type: 'link', label: 'Purchase Return', path: '/purchase-return' },
+    { type: 'link', label: 'Purchase Return History', path: '/purchase-return-list' },
     { type: 'link', label: 'Logout', path: null },
   ];
 
@@ -335,15 +337,52 @@ export default function Sidebar({ activePage = '' }) {
             <span>Total Purchases</span>
           </div>
         </button>
+
+        {/* Purchase Return */}
+        <button
+          onClick={() => router.push('/purchase-return')}
+          onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 13 : 8)}
+          className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
+            activePage === 'purchase-return'
+              ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-md'
+              : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+          } ${selectedMenuIndex === (filesDropdownOpen ? 13 : 8) ? 'ring-2 ring-yellow-400' : ''}`}
+        >
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clipRule="evenodd" />
+            </svg>
+            <span>Purchase Return</span>
+          </div>
+        </button>
+
+        {/* Purchase Return History */}
+        <button
+          onClick={() => router.push('/purchase-return-list')}
+          onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 14 : 9)}
+          className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
+            activePage === 'purchase-return-list'
+              ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-md'
+              : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
+          } ${selectedMenuIndex === (filesDropdownOpen ? 14 : 9) ? 'ring-2 ring-yellow-400' : ''}`}
+        >
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+              <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+            </svg>
+            <span>Purchase Return History</span>
+          </div>
+        </button>
       </nav>
 
       {/* Logout Button - Compact */}
       <div className="p-3 border-t border-slate-700 flex-shrink-0">
         <button
           onClick={handleLogout}
-          onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 13 : 8)}
+          onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 15 : 10)}
           className={`w-full px-3 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 text-xs font-semibold shadow-md flex items-center justify-center gap-1.5 ${
-            selectedMenuIndex === (filesDropdownOpen ? 13 : 8) ? 'ring-2 ring-yellow-400' : ''
+            selectedMenuIndex === (filesDropdownOpen ? 15 : 10) ? 'ring-2 ring-yellow-400' : ''
           }`}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
