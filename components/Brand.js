@@ -385,9 +385,9 @@ export default function Brand() {
       )}
 
       {/* Form Section - Compact */}
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-100">
+      <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg p-3 border border-teal-100">
         <h2 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
-          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           {editingId ? 'Edit Brand' : 'Add New Brand'}
@@ -401,14 +401,14 @@ export default function Brand() {
               value={brandName}
               onChange={(e) => setBrandName(e.target.value)}
               required
-              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none"
+              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none"
               placeholder="Brand Name"
             />
             <input
               type="text"
               value={brandCode}
               onChange={(e) => setBrandCode(e.target.value)}
-              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none"
+              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none"
               placeholder="Brand Code"
             />
           </div>
@@ -417,7 +417,7 @@ export default function Brand() {
             <button
               type="submit"
               disabled={loading}
-              className="px-3 py-1.5 text-xs bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-1 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
+              className="px-3 py-1.5 text-xs bg-teal-600 text-white rounded-md hover:bg-teal-700 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
             >
               {loading ? 'Saving...' : editingId ? 'Update' : 'Add'}
             </button>
@@ -439,7 +439,7 @@ export default function Brand() {
       <div className="flex-1 flex flex-col min-h-0">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
             </svg>
             Brands List
@@ -452,7 +452,7 @@ export default function Brand() {
         <div className="flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div className="overflow-x-auto flex-1">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gradient-to-r from-green-600 to-emerald-600 sticky top-0">
+              <thead className="bg-gradient-to-r from-teal-600 to-cyan-600 sticky top-0">
                 <tr>
                   <th className="px-3 py-2 text-left text-xs font-bold text-white uppercase tracking-wider">
                     ID
@@ -482,7 +482,7 @@ export default function Brand() {
                   </tr>
                 ) : (
                   currentItems.map((brand, index) => (
-                    <tr key={brand.id} className={`hover:bg-green-50 transition-colors ${
+                    <tr key={brand.id} className={`hover:bg-teal-50 transition-colors ${
                       index === selectedRow ? 'bg-yellow-50 ring-2 ring-yellow-400' : ''
                     }`}>
                       <td className="px-3 py-2 whitespace-nowrap text-xs font-semibold text-gray-900">
@@ -492,7 +492,7 @@ export default function Brand() {
                         {brand.brand_name}
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
-                        <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                        <span className="px-2 py-0.5 bg-teal-100 text-green-700 rounded-full font-medium">
                           {brand.brand_code}
                         </span>
                       </td>
@@ -500,8 +500,8 @@ export default function Brand() {
                         <div className="flex gap-1">
                           <button
                             onClick={() => handleEdit(brand)}
-                            className={`p-1 text-green-600 hover:bg-green-100 rounded transition-all ${
-                              index === selectedRow && selectedAction === 0 ? 'ring-2 ring-green-400 bg-green-100' : ''
+                            className={`p-1 text-teal-600 hover:bg-teal-100 rounded transition-all ${
+                              index === selectedRow && selectedAction === 0 ? 'ring-2 ring-teal-400 bg-teal-100' : ''
                             }`}
                             title="Edit"
                           >
@@ -536,7 +536,7 @@ export default function Brand() {
                 <button
                   onClick={() => paginate(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="pagination-btn px-3 py-1.5 text-sm border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium text-gray-700 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                  className="pagination-btn px-3 py-1.5 text-sm border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium text-gray-700 focus:ring-2 focus:ring-teal-500 focus:outline-none"
                 >
                   Previous
                 </button>
@@ -544,7 +544,7 @@ export default function Brand() {
                   <button
                     key={index + 1}
                     onClick={() => paginate(index + 1)}
-                    className={`pagination-btn px-3 py-1.5 text-sm border rounded font-medium transition focus:ring-2 focus:ring-green-500 focus:outline-none ${
+                    className={`pagination-btn px-3 py-1.5 text-sm border rounded font-medium transition focus:ring-2 focus:ring-teal-500 focus:outline-none ${
                       currentPage === index + 1
                         ? 'bg-teal-600 text-white border-teal-600'
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
@@ -556,7 +556,7 @@ export default function Brand() {
                 <button
                   onClick={() => paginate(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="pagination-btn px-3 py-1.5 text-sm border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium text-gray-700 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                  className="pagination-btn px-3 py-1.5 text-sm border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium text-gray-700 focus:ring-2 focus:ring-teal-500 focus:outline-none"
                 >
                   Next
                 </button>
