@@ -469,9 +469,9 @@ export default function Units() {
       )}
 
       {/* Add/Edit Form */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-2 rounded-lg border border-blue-100 mb-2">
+      <div className="bg-gradient-to-r from-teal-50 to-cyan-50 p-2 rounded-lg border border-teal-100 mb-2">
         <div className="flex items-center gap-1.5 mb-2">
-          <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
+          <div className="w-6 h-6 bg-teal-600 rounded flex items-center justify-center">
             <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
               <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
@@ -494,7 +494,7 @@ export default function Units() {
                 setSelectedRow(-1);
                 setSelectedAction(-1);
               }}
-              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
               placeholder="Enter unit name"
             />
           </div>
@@ -508,7 +508,7 @@ export default function Units() {
                 setSelectedRow(-1);
                 setSelectedAction(-1);
               }}
-              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
               placeholder="Enter unit code"
             />
           </div>
@@ -519,7 +519,7 @@ export default function Units() {
                 setSelectedRow(-1);
                 setSelectedAction(-1);
               }}
-              className="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded hover:from-blue-700 hover:to-indigo-700"
+              className="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-teal-600 to-cyan-600 rounded hover:from-blue-700 hover:to-indigo-700"
             >
               {editingId ? 'Update' : 'Add'}
             </button>
@@ -544,7 +544,7 @@ export default function Units() {
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 bg-blue-600 rounded flex items-center justify-center">
+            <div className="w-5 h-5 bg-teal-600 rounded flex items-center justify-center">
               <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                 <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
@@ -558,7 +558,7 @@ export default function Units() {
         <div className="flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div className="overflow-x-auto flex-1">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 sticky top-0">
+              <thead className="bg-gradient-to-r from-teal-600 to-cyan-600 sticky top-0">
                 <tr>
                   <th className="px-2 py-1.5 text-left text-xs font-bold text-white uppercase tracking-wider">ID</th>
                   <th className="px-2 py-1.5 text-left text-xs font-bold text-white uppercase tracking-wider">Unit Name</th>
@@ -588,13 +588,13 @@ export default function Units() {
                       }`}
                     >
                       <td className="px-2 py-1.5 whitespace-nowrap">
-                        <span className="text-xs font-semibold text-blue-600">{unit.id}</span>
+                        <span className="text-xs font-semibold text-teal-600">{unit.id}</span>
                       </td>
                       <td className="px-2 py-1.5 whitespace-nowrap">
                         <span className="text-xs font-medium text-gray-900">{unit.unit_name}</span>
                       </td>
                       <td className="px-2 py-1.5 whitespace-nowrap">
-                        <span className="px-1.5 py-0.5 text-xs font-semibold text-blue-700 bg-blue-100 rounded-full">
+                        <span className="px-1.5 py-0.5 text-xs font-semibold text-blue-700 bg-teal-100 rounded-full">
                           {unit.unit_code}
                         </span>
                       </td>
@@ -606,9 +606,9 @@ export default function Units() {
                               setSelectedAction(-1);
                               handleEdit(unit);
                             }}
-                            className={`p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors ${
+                            className={`p-1 text-teal-600 hover:bg-teal-50 rounded transition-colors ${
                               selectedRow !== -1 && selectedRow === index && selectedAction === 0
-                                ? 'ring-2 ring-blue-500 bg-blue-100'
+                                ? 'ring-2 ring-blue-500 bg-teal-100'
                                 : ''
                             }`}
                             title="Edit"
@@ -660,10 +660,10 @@ export default function Units() {
                     setSelectedAction(-1);
                   }}
                   disabled={currentPage === 1}
-                  className={`pagination-btn px-2 py-1 text-xs font-medium rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`pagination-btn px-2 py-1 text-xs font-medium rounded transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 ${
                     currentPage === 1
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600 border border-gray-300'
+                      : 'bg-white text-gray-700 hover:bg-teal-50 hover:text-teal-600 border border-gray-300'
                   }`}
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -679,10 +679,10 @@ export default function Units() {
                       setSelectedRow(-1);
                       setSelectedAction(-1);
                     }}
-                    className={`pagination-btn px-2 py-1 text-xs font-medium rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`pagination-btn px-2 py-1 text-xs font-medium rounded transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 ${
                       currentPage === pageNum
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
-                        : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600 border border-gray-300'
+                        ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white'
+                        : 'bg-white text-gray-700 hover:bg-teal-50 hover:text-teal-600 border border-gray-300'
                     }`}
                   >
                     {pageNum}
@@ -696,10 +696,10 @@ export default function Units() {
                     setSelectedAction(-1);
                   }}
                   disabled={currentPage === totalPages}
-                  className={`pagination-btn px-2 py-1 text-xs font-medium rounded transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`pagination-btn px-2 py-1 text-xs font-medium rounded transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 ${
                     currentPage === totalPages
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600 border border-gray-300'
+                      : 'bg-white text-gray-700 hover:bg-teal-50 hover:text-teal-600 border border-gray-300'
                   }`}
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
