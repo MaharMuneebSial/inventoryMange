@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(copy \"electron\\main-sqljs.js\" \"electron\\main.js\" /Y)",
-      "Bash(start-app.bat)"
+      "Bash(start-app.bat)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

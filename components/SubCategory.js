@@ -332,8 +332,8 @@ export default function SubCategory() {
         return;
       }
 
-      // Handle ArrowLeft and ArrowRight for field navigation
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      // Handle Shift + ArrowLeft and ArrowRight for field navigation
+      if (e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
         if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'BUTTON') {
           e.preventDefault();
           // Close dropdown when navigating
@@ -369,6 +369,7 @@ export default function SubCategory() {
         }
         return;
       }
+      // Normal arrow keys (without Shift) work for text cursor movement
     };
 
     document.addEventListener('keydown', handleKeyDown);
@@ -512,7 +513,6 @@ export default function SubCategory() {
               type="text"
               value={subCategoryCode}
               onChange={(e) => setSubCategoryCode(e.target.value)}
-              required
               className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 outline-none"
               placeholder="Sub-Category Code"
             />

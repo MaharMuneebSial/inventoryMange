@@ -23,6 +23,11 @@ export default function PurchaseList() {
 
   // Refs for modal buttons
   const closeButtonRef = useRef(null);
+  const cancelButtonRef = useRef(null);
+  const deleteButtonRef = useRef(null);
+
+  // Delete modal button navigation state
+  const [deleteModalFocusIndex, setDeleteModalFocusIndex] = useState(0); // 0 = Cancel, 1 = Delete
 
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -109,6 +114,54 @@ export default function PurchaseList() {
       }, 100);
     }
   }, [viewingPurchase]);
+
+  // Keyboard support for delete confirmation modal
+  useEffect(() => {
+    if (!showDeleteConfirm) return;
+
+    const handleDeleteModalKeyDown = (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setDeleteModalFocusIndex(prev => prev === 0 ? 1 : 0);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (deleteModalFocusIndex === 0) {
+          // Cancel button
+          setShowDeleteConfirm(false);
+        } else {
+          // Delete button
+          handleDelete();
+        }
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowDeleteConfirm(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleDeleteModalKeyDown);
+    return () => document.removeEventListener('keydown', handleDeleteModalKeyDown);
+  }, [showDeleteConfirm, deleteId, deleteModalFocusIndex]);
+
+  // Auto-focus and reset delete modal when it opens
+  useEffect(() => {
+    if (showDeleteConfirm) {
+      setDeleteModalFocusIndex(0);
+      setTimeout(() => {
+        cancelButtonRef.current?.focus();
+      }, 100);
+    }
+  }, [showDeleteConfirm]);
+
+  // Focus management for delete modal buttons
+  useEffect(() => {
+    if (!showDeleteConfirm) return;
+
+    if (deleteModalFocusIndex === 0) {
+      cancelButtonRef.current?.focus();
+    } else {
+      deleteButtonRef.current?.focus();
+    }
+  }, [deleteModalFocusIndex, showDeleteConfirm]);
 
   const showToast = (type, message) => {
     setToast({ show: true, type, message });
@@ -216,14 +269,20 @@ export default function PurchaseList() {
             <p className="text-xs text-gray-600 mb-4">Are you sure? This action cannot be undone.</p>
             <div className="flex gap-2 justify-end">
               <button
+                ref={cancelButtonRef}
                 onClick={() => setShowDeleteConfirm(false)}
-                className="px-3 py-1.5 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition text-xs font-medium"
+                className={`px-3 py-1.5 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition text-xs font-medium ${
+                  deleteModalFocusIndex === 0 ? 'ring-2 ring-yellow-400 ring-offset-2' : ''
+                }`}
               >
                 Cancel
               </button>
               <button
+                ref={deleteButtonRef}
                 onClick={handleDelete}
-                className="px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-xs font-medium"
+                className={`px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-xs font-medium ${
+                  deleteModalFocusIndex === 1 ? 'ring-2 ring-yellow-400 ring-offset-2' : ''
+                }`}
               >
                 Delete
               </button>
@@ -351,6 +410,7 @@ export default function PurchaseList() {
                   <th className="px-1.5 py-1 text-left text-[10px] font-bold text-white uppercase tracking-wide">Total</th>
                   <th className="px-1.5 py-1 text-left text-[10px] font-bold text-white uppercase tracking-wide">Paid</th>
                   <th className="px-1.5 py-1 text-left text-[10px] font-bold text-white uppercase tracking-wide">Due</th>
+                  <th className="px-1.5 py-1 text-left text-[10px] font-bold text-white uppercase tracking-wide">Extra</th>
                   <th className="px-1.5 py-1 text-left text-[10px] font-bold text-white uppercase tracking-wide">Date</th>
                   <th className="px-1.5 py-1 text-left text-[10px] font-bold text-white uppercase tracking-wide">Actions</th>
                 </tr>
@@ -358,7 +418,7 @@ export default function PurchaseList() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan="10" className="px-3 py-4 text-center text-xs text-gray-500">
+                    <td colSpan="11" className="px-3 py-4 text-center text-xs text-gray-500">
                       <div className="flex flex-col items-center gap-1.5">
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
                         <span>Loading...</span>
@@ -367,7 +427,7 @@ export default function PurchaseList() {
                   </tr>
                 ) : currentItems.length === 0 ? (
                   <tr>
-                    <td colSpan="10" className="px-3 py-4 text-center text-xs text-gray-500">
+                    <td colSpan="11" className="px-3 py-4 text-center text-xs text-gray-500">
                       <div className="flex flex-col items-center gap-1.5">
                         <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -390,7 +450,15 @@ export default function PurchaseList() {
                       <td className="px-1.5 py-1 whitespace-nowrap">
                         <div className="inline-block px-1.5 py-0.5 bg-blue-100 rounded-full">
                           <span className="text-[10px] font-medium text-blue-700">
-                            {purchase.quantity} {purchase.unit}
+                            {purchase.packaging_type === 'carton' && purchase.num_cartons > 0 ? (
+                              `${purchase.num_cartons} × ${purchase.boxes_per_carton} × ${purchase.pieces_per_box} = ${purchase.quantity} pieces`
+                            ) : purchase.packaging_type === 'box' && purchase.num_boxes > 0 ? (
+                              `${purchase.num_boxes} × ${purchase.pieces_per_box} = ${purchase.quantity} pieces`
+                            ) : (purchase.packaging_type === 'pack' || purchase.packaging_type === 'bag') && purchase.num_packs > 0 ? (
+                              `${purchase.num_packs} × ${purchase.pieces_per_pack} = ${purchase.quantity} pieces`
+                            ) : (
+                              `${purchase.quantity} ${purchase.unit}`
+                            )}
                           </span>
                         </div>
                       </td>
@@ -408,6 +476,9 @@ export default function PurchaseList() {
                       </td>
                       <td className="px-1.5 py-1 whitespace-nowrap text-[11px] font-semibold text-red-600">
                         Rs. {parseFloat(purchase.due_amount || 0).toFixed(0)}
+                      </td>
+                      <td className="px-1.5 py-1 whitespace-nowrap text-[11px] font-semibold text-green-700">
+                        Rs. {parseFloat(purchase.extra_amount || 0).toFixed(0)}
                       </td>
                       <td className="px-1.5 py-1 whitespace-nowrap text-[11px] text-gray-900">
                         {purchase.purchase_date}

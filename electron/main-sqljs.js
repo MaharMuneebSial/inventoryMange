@@ -129,6 +129,14 @@ async function initDatabase() {
       total_amount REAL DEFAULT 0,
       paid_amount REAL DEFAULT 0,
       due_amount REAL DEFAULT 0,
+      packaging_type TEXT,
+      num_cartons REAL DEFAULT 0,
+      boxes_per_carton REAL DEFAULT 0,
+      pieces_per_box REAL DEFAULT 0,
+      num_boxes REAL DEFAULT 0,
+      num_packs REAL DEFAULT 0,
+      pieces_per_pack REAL DEFAULT 0,
+      extra_amount REAL DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (product_id) REFERENCES products(id),
       FOREIGN KEY (category_id) REFERENCES categories(id),
@@ -190,6 +198,39 @@ async function initDatabase() {
     }
   } catch (error) {
     console.log('Migration error:', error.message);
+  }
+
+  // Database migrations for existing tables
+  try {
+    // Get current columns in purchases table
+    const tableInfo = db.exec("PRAGMA table_info(purchases)");
+    const existingColumns = tableInfo[0]?.values.map(col => col[1]) || [];
+
+    console.log('Existing columns in purchases table:', existingColumns);
+
+    // List of columns that should exist
+    const requiredColumns = [
+      { name: 'packaging_type', type: 'TEXT', default: null },
+      { name: 'num_cartons', type: 'REAL', default: 0 },
+      { name: 'boxes_per_carton', type: 'REAL', default: 0 },
+      { name: 'pieces_per_box', type: 'REAL', default: 0 },
+      { name: 'num_boxes', type: 'REAL', default: 0 },
+      { name: 'num_packs', type: 'REAL', default: 0 },
+      { name: 'pieces_per_pack', type: 'REAL', default: 0 },
+      { name: 'extra_amount', type: 'REAL', default: 0 }
+    ];
+
+    // Add missing columns
+    for (const col of requiredColumns) {
+      if (!existingColumns.includes(col.name)) {
+        const defaultValue = col.default === null ? 'NULL' : col.default;
+        console.log(`Adding ${col.name} column to purchases table...`);
+        db.run(`ALTER TABLE purchases ADD COLUMN ${col.name} ${col.type} DEFAULT ${defaultValue}`);
+        console.log(`${col.name} column added successfully`);
+      }
+    }
+  } catch (error) {
+    console.log('Migration error (may be safe to ignore):', error.message);
   }
 
   // Save database to file
@@ -646,30 +687,40 @@ ipcMain.handle('add-purchase', async (event, purchaseData) => {
         product_id, item_barcode, box_barcode, category_id, sub_category_id,
         brand_id, supplier_id, mfg_date, exp_date, purchase_date, quantity,
         unit, purchase_price, sale_price, min_wholesale_qty,
-        wholesale_price, gst, total_amount, paid_amount, due_amount
+        wholesale_price, gst, total_amount, paid_amount, due_amount,
+        packaging_type, num_cartons, boxes_per_carton, pieces_per_box,
+        num_boxes, num_packs, pieces_per_pack, extra_amount
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       purchaseData.productId,
-      purchaseData.itemBarcode,
-      purchaseData.boxBarcode || '',
-      purchaseData.categoryId,
-      purchaseData.subCategoryId,
-      purchaseData.brandId,
-      purchaseData.supplierId,
-      purchaseData.mfgDate || '',
-      purchaseData.expDate || '',
-      purchaseData.purchaseDate,
-      purchaseData.quantity,
-      purchaseData.unit,
-      purchaseData.purchasePrice,
-      purchaseData.salePrice,
-      purchaseData.minWholesaleQty || 0,
-      purchaseData.wholesalePrice || 0,
-      purchaseData.gst || 0,
-      purchaseData.totalAmount,
-      purchaseData.paidAmount || 0,
-      purchaseData.dueAmount || 0
+      purchaseData.itemBarcode || null,
+      purchaseData.boxBarcode || null,
+      purchaseData.categoryId || null,
+      purchaseData.subCategoryId || null,
+      purchaseData.brandId || null,
+      purchaseData.supplierId || null,
+      purchaseData.mfgDate || null,
+      purchaseData.expDate || null,
+      purchaseData.purchaseDate || null,
+      purchaseData.quantity || null,
+      purchaseData.unit || null,
+      purchaseData.purchasePrice || null,
+      purchaseData.salePrice || null,
+      purchaseData.minWholesaleQty || null,
+      purchaseData.wholesalePrice || null,
+      purchaseData.gst || null,
+      purchaseData.totalAmount || null,
+      purchaseData.paidAmount || null,
+      purchaseData.dueAmount || null,
+      purchaseData.packagingType || null,
+      purchaseData.numCartons || null,
+      purchaseData.boxesPerCarton || null,
+      purchaseData.piecesPerBox || null,
+      purchaseData.numBoxes || null,
+      purchaseData.numPacks || null,
+      purchaseData.piecesPerPack || null,
+      purchaseData.extraAmount || 0
     ]);
 
     console.log('Purchase inserted successfully');
@@ -728,29 +779,38 @@ ipcMain.handle('update-purchase', async (event, purchaseData) => {
           sub_category_id = ?, brand_id = ?, supplier_id = ?, mfg_date = ?,
           exp_date = ?, purchase_date = ?, quantity = ?, unit = ?, purchase_price = ?,
           sale_price = ?, min_wholesale_qty = ?, wholesale_price = ?, gst = ?,
-          total_amount = ?, paid_amount = ?, due_amount = ?
+          total_amount = ?, paid_amount = ?, due_amount = ?,
+          packaging_type = ?, num_cartons = ?, boxes_per_carton = ?, pieces_per_box = ?,
+          num_boxes = ?, num_packs = ?, pieces_per_pack = ?
       WHERE id = ?
     `, [
       purchaseData.productId,
-      purchaseData.itemBarcode,
-      purchaseData.boxBarcode,
-      purchaseData.categoryId,
-      purchaseData.subCategoryId,
-      purchaseData.brandId,
-      purchaseData.supplierId,
-      purchaseData.mfgDate,
-      purchaseData.expDate,
-      purchaseData.purchaseDate,
-      purchaseData.quantity,
-      purchaseData.unit,
-      purchaseData.purchasePrice,
-      purchaseData.salePrice,
-      purchaseData.minWholesaleQty,
-      purchaseData.wholesalePrice,
-      purchaseData.gst,
-      purchaseData.totalAmount,
-      purchaseData.paidAmount || 0,
-      purchaseData.dueAmount || 0,
+      purchaseData.itemBarcode || null,
+      purchaseData.boxBarcode || null,
+      purchaseData.categoryId || null,
+      purchaseData.subCategoryId || null,
+      purchaseData.brandId || null,
+      purchaseData.supplierId || null,
+      purchaseData.mfgDate || null,
+      purchaseData.expDate || null,
+      purchaseData.purchaseDate || null,
+      purchaseData.quantity || null,
+      purchaseData.unit || null,
+      purchaseData.purchasePrice || null,
+      purchaseData.salePrice || null,
+      purchaseData.minWholesaleQty || null,
+      purchaseData.wholesalePrice || null,
+      purchaseData.gst || null,
+      purchaseData.totalAmount || null,
+      purchaseData.paidAmount || null,
+      purchaseData.dueAmount || null,
+      purchaseData.packagingType || null,
+      purchaseData.numCartons || null,
+      purchaseData.boxesPerCarton || null,
+      purchaseData.piecesPerBox || null,
+      purchaseData.numBoxes || null,
+      purchaseData.numPacks || null,
+      purchaseData.piecesPerPack || null,
       purchaseData.id
     ]);
     const dbPath = path.join(app.getPath('userData'), 'inventory.db');

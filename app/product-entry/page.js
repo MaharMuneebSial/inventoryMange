@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from '../../components/Sidebar';
+import { useFormKeyboard, useTableKeyboard } from '../../lib/useGlobalKeyboard';
 
 export default function ProductEntry() {
   const [products, setProducts] = useState([]);
@@ -399,8 +400,8 @@ export default function ProductEntry() {
         return;
       }
 
-      // Handle Left/Right arrow keys
-      if (['ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      // Handle Shift + Left/Right arrow keys for field navigation
+      if (e.shiftKey && ['ArrowLeft', 'ArrowRight'].includes(e.key)) {
         // If in table navigation mode (not in input/button), navigate actions
         if (!loading && !viewingProduct && !showDeleteConfirm && !isDropdownOpen &&
             activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'BUTTON') {
@@ -442,6 +443,8 @@ export default function ProductEntry() {
           }
         }
       }
+
+      // Normal arrow keys (without Shift) work for text cursor movement
 
       // Handle F3 key to move to pagination buttons
       if (e.key === 'F3') {
@@ -627,17 +630,17 @@ export default function ProductEntry() {
 
   const handleEdit = (product) => {
     setProductName(product.product_name || '');
-    setBarcodeItem(product.barcode_item);
+    setBarcodeItem(product.barcode_item || '');
     setBarcodeBox(product.barcode_box || '');
-    setCategoryId(product.category_id.toString());
-    setSubCategoryId(product.sub_category_id.toString());
-    setBrandId(product.brand_id.toString());
+    setCategoryId(product.category_id ? product.category_id.toString() : '');
+    setSubCategoryId(product.sub_category_id ? product.sub_category_id.toString() : '');
+    setBrandId(product.brand_id ? product.brand_id.toString() : '');
     setImagePreview(product.image_path || '');
     setEditingId(product.id);
     // Populate search fields with names
-    setCategorySearch(product.category_name);
-    setSubCategorySearch(product.sub_category_name);
-    setBrandSearch(product.brand_name);
+    setCategorySearch(product.category_name || '');
+    setSubCategorySearch(product.sub_category_name || '');
+    setBrandSearch(product.brand_name || '');
   };
 
   const confirmDelete = (id) => {
@@ -658,6 +661,39 @@ export default function ProductEntry() {
     setShowDeleteConfirm(false);
     setDeleteId(null);
   };
+
+  // Enable form keyboard shortcuts (Ctrl+Enter to submit, Ctrl+N to clear, Escape to cancel)
+  useFormKeyboard({
+    onSubmit: () => {
+      const formElement = document.querySelector('form');
+      if (formElement && !viewingProduct && !showDeleteConfirm) {
+        formElement.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      }
+    },
+    onNew: resetForm,
+    onCancel: resetForm
+  });
+
+  // Enable table keyboard shortcuts for product list navigation
+  useTableKeyboard({
+    onEdit: () => {
+      if (!viewingProduct && !showDeleteConfirm && currentItems[selectedRow]) {
+        handleEdit(currentItems[selectedRow]);
+      }
+    },
+    onDelete: () => {
+      if (!viewingProduct && !showDeleteConfirm && currentItems[selectedRow]) {
+        confirmDelete(currentItems[selectedRow].id);
+      }
+    },
+    onSearch: () => {
+      const searchInput = document.querySelector('input[type="text"]');
+      if (searchInput) searchInput.focus();
+    },
+    currentPage,
+    totalPages,
+    setPage: paginate
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">

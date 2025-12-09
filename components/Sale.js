@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useFormKeyboard } from '../lib/useGlobalKeyboard';
 
 export default function Sale() {
   const [products, setProducts] = useState([]);
@@ -257,8 +258,8 @@ export default function Sale() {
         }
       }
 
-      // Handle Left/Right arrow keys (always work, close dropdowns)
-      if (['ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      // Handle Shift + Left/Right arrow keys for field navigation
+      if (e.shiftKey && ['ArrowLeft', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
         const formElements = Array.from(document.querySelectorAll('input:not([type="hidden"]), select, textarea, button')).filter(el => !el.disabled && !el.readOnly && el.offsetParent !== null);
         const currentIndex = formElements.indexOf(activeElement);
@@ -278,6 +279,8 @@ export default function Sale() {
         }
         return;
       }
+
+      // Normal arrow keys (without Shift) work for text cursor movement
 
       // Handle Up/Down arrows (only when dropdown closed)
       if (['ArrowUp', 'ArrowDown'].includes(e.key) && !isDropdownOpen) {
@@ -670,6 +673,36 @@ export default function Sale() {
       setLoading(false);
     }
   };
+
+  // Enable form keyboard shortcuts (Ctrl+Enter to complete sale, Ctrl+N to clear cart, Escape to cancel)
+  useFormKeyboard({
+    onSubmit: completeSale,
+    onNew: () => {
+      setCart([]);
+      setSelectedProductId('');
+      setBarcodeInput('');
+      setSearchQuery('');
+      setQuantity('');
+      setUnit('');
+      setAmountInRupees('');
+      setDiscount(0);
+      setTaxRate(0);
+      setAmountReceived('');
+      setNotes('');
+      setProductSearch('');
+      setUnitSearch('');
+    },
+    onCancel: () => {
+      setSelectedProductId('');
+      setBarcodeInput('');
+      setSearchQuery('');
+      setQuantity('');
+      setUnit('');
+      setAmountInRupees('');
+      setProductSearch('');
+      setUnitSearch('');
+    }
+  });
 
   return (
     <div className="h-full flex flex-col space-y-2">

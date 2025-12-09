@@ -197,8 +197,8 @@ export default function Brand() {
             const submitBtn = document.querySelector('button[type="submit"]');
             if (submitBtn) submitBtn.focus();
           }
-        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-          // Navigate between form fields using Left/Right arrows
+        } else if (e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+          // Navigate between form fields using Shift + Left/Right arrows
           e.preventDefault();
           const form = document.querySelector('form');
           if (form) {
@@ -217,7 +217,9 @@ export default function Brand() {
               }
             }
           }
-        } else if (e.key === 'ArrowDown') {
+        }
+        // Normal arrow keys (without Shift) work for text cursor movement
+        else if (e.key === 'ArrowDown') {
           // Navigate down to next form field
           e.preventDefault();
           const inputs = document.querySelectorAll('input[type="text"]');
@@ -406,7 +408,6 @@ export default function Brand() {
               type="text"
               value={brandCode}
               onChange={(e) => setBrandCode(e.target.value)}
-              required
               className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500 outline-none"
               placeholder="Brand Code"
             />

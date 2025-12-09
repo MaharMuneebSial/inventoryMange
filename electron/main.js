@@ -129,6 +129,14 @@ async function initDatabase() {
       total_amount REAL DEFAULT 0,
       paid_amount REAL DEFAULT 0,
       due_amount REAL DEFAULT 0,
+      packaging_type TEXT,
+      num_cartons REAL DEFAULT 0,
+      boxes_per_carton REAL DEFAULT 0,
+      pieces_per_box REAL DEFAULT 0,
+      num_boxes REAL DEFAULT 0,
+      num_packs REAL DEFAULT 0,
+      pieces_per_pack REAL DEFAULT 0,
+      extra_amount REAL DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (product_id) REFERENCES products(id),
       FOREIGN KEY (category_id) REFERENCES categories(id),
@@ -737,9 +745,11 @@ ipcMain.handle('add-purchase', async (event, purchaseData) => {
         product_id, item_barcode, box_barcode, category_id, sub_category_id,
         brand_id, supplier_id, mfg_date, exp_date, purchase_date, quantity,
         unit, purchase_price, sale_price, min_wholesale_qty,
-        wholesale_price, gst, total_amount, paid_amount, due_amount
+        wholesale_price, gst, total_amount, paid_amount, due_amount,
+        packaging_type, num_cartons, boxes_per_carton, pieces_per_box,
+        num_boxes, num_packs, pieces_per_pack, extra_amount
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       purchaseData.productId,
       purchaseData.itemBarcode,
@@ -760,7 +770,15 @@ ipcMain.handle('add-purchase', async (event, purchaseData) => {
       purchaseData.gst || 0,
       purchaseData.totalAmount,
       purchaseData.paidAmount || 0,
-      purchaseData.dueAmount || 0
+      purchaseData.dueAmount || 0,
+      purchaseData.packagingType || null,
+      purchaseData.numCartons || 0,
+      purchaseData.boxesPerCarton || 0,
+      purchaseData.piecesPerBox || 0,
+      purchaseData.numBoxes || 0,
+      purchaseData.numPacks || 0,
+      purchaseData.piecesPerPack || 0,
+      purchaseData.extraAmount || 0
     ]);
 
     console.log('Purchase inserted successfully');
@@ -819,7 +837,9 @@ ipcMain.handle('update-purchase', async (event, purchaseData) => {
           sub_category_id = ?, brand_id = ?, supplier_id = ?, mfg_date = ?,
           exp_date = ?, purchase_date = ?, quantity = ?, unit = ?, purchase_price = ?,
           sale_price = ?, min_wholesale_qty = ?, wholesale_price = ?, gst = ?,
-          total_amount = ?, paid_amount = ?, due_amount = ?
+          total_amount = ?, paid_amount = ?, due_amount = ?,
+          packaging_type = ?, num_cartons = ?, boxes_per_carton = ?, pieces_per_box = ?,
+          num_boxes = ?, num_packs = ?, pieces_per_pack = ?, extra_amount = ?
       WHERE id = ?
     `, [
       purchaseData.productId,
@@ -842,6 +862,14 @@ ipcMain.handle('update-purchase', async (event, purchaseData) => {
       purchaseData.totalAmount,
       purchaseData.paidAmount || 0,
       purchaseData.dueAmount || 0,
+      purchaseData.packagingType || null,
+      purchaseData.numCartons || 0,
+      purchaseData.boxesPerCarton || 0,
+      purchaseData.piecesPerBox || 0,
+      purchaseData.numBoxes || 0,
+      purchaseData.numPacks || 0,
+      purchaseData.piecesPerPack || 0,
+      purchaseData.extraAmount || 0,
       purchaseData.id
     ]);
     const dbPath = path.join(app.getPath('userData'), 'inventory.db');
