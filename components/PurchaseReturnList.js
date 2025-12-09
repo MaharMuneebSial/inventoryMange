@@ -174,7 +174,7 @@ export default function PurchaseReturnList() {
           <div className={`rounded-md shadow-lg px-3 py-1.5 flex items-center gap-2 ${
             toast.type === 'success'
               ? 'bg-green-500 text-white'
-              : 'bg-red-500 text-white'
+              : 'bg-cyan-500 text-white'
           }`}>
             {toast.type === 'success' ? (
               <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -475,15 +475,15 @@ export default function PurchaseReturnList() {
             <p className="text-xs font-medium opacity-90">Total Returns</p>
             <p className="text-2xl font-bold mt-1">{totalReturns}</p>
           </div>
-          <div className="bg-gradient-to-br from-red-500 to-red-600 p-3 rounded-lg shadow-sm text-white">
+          <div className="bg-gradient-to-br from-cyan-500 to-cyan-600 p-3 rounded-lg shadow-sm text-white">
             <p className="text-xs font-medium opacity-90">Total Credit</p>
             <p className="text-lg font-bold mt-1">Rs. {totalCreditAmount.toFixed(2)}</p>
           </div>
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-lg shadow-sm text-white">
+          <div className="bg-gradient-to-br from-teal-500 to-teal-600 p-3 rounded-lg shadow-sm text-white">
             <p className="text-xs font-medium opacity-90">Suppliers Affected</p>
             <p className="text-2xl font-bold mt-1">{uniqueSuppliers}</p>
           </div>
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-3 rounded-lg shadow-sm text-white">
+          <div className="bg-gradient-to-br from-cyan-600 to-teal-600 p-3 rounded-lg shadow-sm text-white">
             <p className="text-xs font-medium opacity-90">Avg Credit</p>
             <p className="text-lg font-bold mt-1">Rs. {averageCredit.toFixed(2)}</p>
           </div>
