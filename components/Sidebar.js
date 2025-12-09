@@ -30,7 +30,6 @@ export default function Sidebar({ activePage = '' }) {
     { type: 'link', label: 'Sale', path: '/sale' },
     { type: 'link', label: 'Total Sales', path: '/sales-list' },
     { type: 'link', label: 'Sale Return', path: '/sale-return' },
-    { type: 'link', label: 'Return History', path: '/sale-return-list' },
     { type: 'link', label: 'Purchase', path: '/purchase' },
     { type: 'link', label: 'Total Purchases', path: '/purchase-list' },
     { type: 'link', label: 'Purchase Return', path: '/purchase-return' },
@@ -282,34 +281,15 @@ export default function Sidebar({ activePage = '' }) {
           </div>
         </button>
 
-        {/* Sale Return List */}
-        <button
-          onClick={() => router.push('/sale-return-list')}
-          onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 10 : 5)}
-          className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
-            activePage === 'sale-return-list'
-              ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-md'
-              : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-          } ${selectedMenuIndex === (filesDropdownOpen ? 10 : 5) ? 'ring-2 ring-yellow-400' : ''}`}
-        >
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-              <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-            </svg>
-            <span>Return History</span>
-          </div>
-        </button>
-
         {/* Purchase */}
         <button
           onClick={() => router.push('/purchase')}
-          onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 11 : 6)}
+          onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 10 : 5)}
           className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
             activePage === 'purchase'
               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
               : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-          } ${selectedMenuIndex === (filesDropdownOpen ? 11 : 6) ? 'ring-2 ring-yellow-400' : ''}`}
+          } ${selectedMenuIndex === (filesDropdownOpen ? 10 : 5) ? 'ring-2 ring-yellow-400' : ''}`}
         >
           <div className="flex items-center gap-2">
             <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -322,12 +302,12 @@ export default function Sidebar({ activePage = '' }) {
         {/* Total Purchases */}
         <button
           onClick={() => router.push('/purchase-list')}
-          onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 12 : 7)}
+          onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 11 : 6)}
           className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
             activePage === 'purchase-list'
               ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
               : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
-          } ${selectedMenuIndex === (filesDropdownOpen ? 12 : 7) ? 'ring-2 ring-yellow-400' : ''}`}
+          } ${selectedMenuIndex === (filesDropdownOpen ? 11 : 6) ? 'ring-2 ring-yellow-400' : ''}`}
         >
           <div className="flex items-center gap-2">
             <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">

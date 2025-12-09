@@ -228,8 +228,8 @@ export default function Category() {
         return;
       }
 
-      // Handle ArrowLeft and ArrowRight for field navigation
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      // Handle Shift + ArrowLeft and ArrowRight for field navigation
+      if (e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
         // If in form fields (inputs or buttons)
         if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'BUTTON') {
           e.preventDefault();
@@ -251,7 +251,12 @@ export default function Category() {
               }
             }
           }
-        } else if (!loading && !showDeleteConfirm) {
+        }
+      }
+      // Normal arrow keys (without Shift) work for text cursor movement in input fields
+      // For table navigation, also use Shift key to avoid blocking text cursor
+      if (e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+        if (!loading && !showDeleteConfirm) {
           // Navigate actions in table
           e.preventDefault();
           if (e.key === 'ArrowLeft') {
@@ -356,7 +361,6 @@ export default function Category() {
               type="text"
               value={categoryCode}
               onChange={(e) => setCategoryCode(e.target.value)}
-              required
               className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
               placeholder="Category Code"
             />

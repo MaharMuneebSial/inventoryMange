@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useFormKeyboard } from '../lib/useGlobalKeyboard';
 
 export default function Purchase() {
   const [products, setProducts] = useState([]);
@@ -30,6 +31,7 @@ export default function Purchase() {
   const [totalAmount, setTotalAmount] = useState('0.00');
   const [paidAmount, setPaidAmount] = useState('');
   const [dueAmount, setDueAmount] = useState('0.00');
+  const [extraAmount, setExtraAmount] = useState('0.00');
 
   const [message, setMessage] = useState('');
   const [isError, setIsError] = useState(false);
@@ -91,6 +93,45 @@ export default function Purchase() {
 
   // Ref for auto-focus on first field
   const productNameInputRef = useRef(null);
+
+  // Refs for all form fields (for Shift+Arrow navigation)
+  const itemBarcodeRef = useRef(null);
+  const boxBarcodeRef = useRef(null);
+  const categoryRef = useRef(null);
+  const subCategoryRef = useRef(null);
+  const brandRef = useRef(null);
+  const mfgDateRef = useRef(null);
+  const expDateRef = useRef(null);
+  const supplierRef = useRef(null);
+  const purchaseDateRef = useRef(null);
+  const unitRef = useRef(null);
+  const quantityRef = useRef(null);
+  const purchasePriceRef = useRef(null);
+  const salePriceRef = useRef(null);
+  const wholesalePriceRef = useRef(null);
+  const minWholesaleQtyRef = useRef(null);
+  const gstRef = useRef(null);
+
+  // Array of all field refs in order
+  const fieldRefs = [
+    productNameInputRef,
+    itemBarcodeRef,
+    boxBarcodeRef,
+    categoryRef,
+    subCategoryRef,
+    brandRef,
+    mfgDateRef,
+    expDateRef,
+    supplierRef,
+    purchaseDateRef,
+    unitRef,
+    quantityRef,
+    purchasePriceRef,
+    salePriceRef,
+    wholesalePriceRef,
+    minWholesaleQtyRef,
+    gstRef
+  ];
 
   // Dropdown selection index for keyboard navigation
   const [selectedProductIndex, setSelectedProductIndex] = useState(-1);
@@ -322,35 +363,8 @@ export default function Purchase() {
         }
       }
 
-      // Handle Left/Right arrow keys for field navigation (works even when dropdown is open)
-      if (['ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        const formElements = Array.from(document.querySelectorAll('input:not([type="hidden"]), select, textarea, button[type="submit"]')).filter(el => !el.disabled && !el.readOnly);
-        const currentIndex = formElements.indexOf(activeElement);
-
-        if (currentIndex === -1) return;
-
-        e.preventDefault();
-
-        // Close all dropdowns when navigating
-        setShowProductDropdown(false);
-        setShowCategoryDropdown(false);
-        setShowSubCategoryDropdown(false);
-        setShowBrandDropdown(false);
-        setShowSupplierDropdown(false);
-        setShowUnitDropdown(false);
-
-        let nextIndex = currentIndex;
-
-        if (e.key === 'ArrowRight') {
-          nextIndex = currentIndex + 1;
-        } else if (e.key === 'ArrowLeft') {
-          nextIndex = currentIndex - 1;
-        }
-
-        if (nextIndex >= 0 && nextIndex < formElements.length) {
-          formElements[nextIndex].focus();
-        }
-      }
+      // Note: Left/Right arrow keys are now handled by Shift+Arrow navigation (lines 691-723)
+      // Normal arrow keys without Shift work for text cursor movement
 
       // Handle Up/Down arrow keys for field navigation (only when dropdown is closed)
       if (['ArrowUp', 'ArrowDown'].includes(e.key) && !isDropdownOpen) {
@@ -528,7 +542,7 @@ export default function Purchase() {
   // Handle packaging modal save
   const handlePackagingModalSave = () => {
     const total = calculateTotalPieces();
-    if (total > 0) {
+    if (total > 0 && !isNaN(total) && total !== null) {
       setQuantity(total.toString());
       setShowPackagingModal(false);
     }
@@ -547,7 +561,7 @@ export default function Purchase() {
         calculatedQty = parseFloat(numPieces);
       }
 
-      if (calculatedQty > 0) {
+      if (calculatedQty > 0 && !isNaN(calculatedQty) && calculatedQty !== null) {
         setQuantity(calculatedQty.toString());
       }
     }
@@ -649,6 +663,40 @@ export default function Purchase() {
     }
   }, [unitSearch, units]);
 
+  // Shift + Arrow Left/Right keyboard navigation for form fields
+  useEffect(() => {
+    const handleFieldNavigation = (e) => {
+      // Only handle Shift + Arrow keys
+      if (!e.shiftKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) {
+        return;
+      }
+
+      // Find currently focused element's index
+      const currentIndex = fieldRefs.findIndex(ref => ref.current === document.activeElement);
+
+      if (currentIndex === -1) return; // Not focused on any of our fields
+
+      e.preventDefault(); // Prevent default shift+arrow behavior
+
+      let nextIndex;
+      if (e.key === 'ArrowRight') {
+        // Move to next field
+        nextIndex = currentIndex + 1;
+        if (nextIndex >= fieldRefs.length) nextIndex = 0; // Loop to first
+      } else {
+        // Move to previous field
+        nextIndex = currentIndex - 1;
+        if (nextIndex < 0) nextIndex = fieldRefs.length - 1; // Loop to last
+      }
+
+      // Focus the next field
+      fieldRefs[nextIndex]?.current?.focus();
+    };
+
+    document.addEventListener('keydown', handleFieldNavigation);
+    return () => document.removeEventListener('keydown', handleFieldNavigation);
+  }, []);
+
   const calculateTotal = () => {
     const qty = parseFloat(quantity) || 0;
     const purchasePr = parseFloat(purchasePrice) || 0;
@@ -666,7 +714,16 @@ export default function Purchase() {
     const total = parseFloat(totalAmount) || 0;
     const paid = parseFloat(paidAmount) || 0;
     const due = total - paid;
-    setDueAmount(due >= 0 ? due.toFixed(2) : '0.00');
+
+    if (due >= 0) {
+      // Normal case: still have due amount
+      setDueAmount(due.toFixed(2));
+      setExtraAmount('0.00');
+    } else {
+      // Paid more than total: calculate extra amount
+      setDueAmount('0.00');
+      setExtraAmount(Math.abs(due).toFixed(2));
+    }
   };
 
   const handleProductChange = (prodId) => {
@@ -851,6 +908,7 @@ export default function Purchase() {
     setTotalAmount('0.00');
     setPaidAmount('');
     setDueAmount('0.00');
+    setExtraAmount('0.00');
     setShowProductDropdown(false);
     // Reset packaging states
     setUseCartonPackaging(false);
@@ -868,6 +926,18 @@ export default function Purchase() {
     setSupplierSearch('');
     setUnitSearch('');
   };
+
+  // Enable form keyboard shortcuts (Ctrl+Enter to submit, Ctrl+N to clear, Escape to cancel)
+  useFormKeyboard({
+    onSubmit: () => {
+      const formElement = document.querySelector('form');
+      if (formElement) {
+        formElement.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      }
+    },
+    onNew: resetForm,
+    onCancel: resetForm
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -899,7 +969,15 @@ export default function Purchase() {
       gst: gst ? parseFloat(gst) : 0,
       totalAmount: totalAmount ? parseFloat(totalAmount) : 0,
       paidAmount: paidAmount ? parseFloat(paidAmount) : 0,
-      dueAmount: dueAmount ? parseFloat(dueAmount) : 0
+      dueAmount: dueAmount ? parseFloat(dueAmount) : 0,
+      extraAmount: extraAmount ? parseFloat(extraAmount) : 0,
+      packagingType: packagingType || null,
+      numCartons: cartons ? parseFloat(cartons) : 0,
+      boxesPerCarton: boxesPerCarton ? parseFloat(boxesPerCarton) : 0,
+      piecesPerBox: piecesPerBox ? parseFloat(piecesPerBox) : 0,
+      numBoxes: boxes ? parseFloat(boxes) : 0,
+      numPacks: packs ? parseFloat(packs) : 0,
+      piecesPerPack: piecesPerPack ? parseFloat(piecesPerPack) : 0
     };
 
     try {
@@ -960,24 +1038,24 @@ export default function Purchase() {
   const handleEdit = (purchase) => {
     setEditingId(purchase.id);
     setProductId(purchase.product_id);
-    setProductSearchTerm(purchase.product_name);
-    setItemBarcode(purchase.item_barcode);
-    setBoxBarcode(purchase.box_barcode);
-    setCategoryId(purchase.category_id);
-    setSubCategoryId(purchase.sub_category_id);
-    setBrandId(purchase.brand_id);
-    setSupplierId(purchase.supplier_id);
-    setMfgDate(purchase.mfg_date);
-    setExpDate(purchase.exp_date);
-    setPurchaseDate(purchase.purchase_date);
-    setQuantity(purchase.quantity);
-    setUnit(purchase.unit);
-    setPurchasePrice(purchase.purchase_price);
-    setSalePrice(purchase.sale_price);
-    setMinWholesaleQty(purchase.min_wholesale_qty);
-    setWholesalePrice(purchase.wholesale_price);
-    setGst(purchase.gst);
-    setTotalAmount(purchase.total_amount);
+    setProductSearchTerm(purchase.product_name || '');
+    setItemBarcode(purchase.item_barcode || '');
+    setBoxBarcode(purchase.box_barcode || '');
+    setCategoryId(purchase.category_id || '');
+    setSubCategoryId(purchase.sub_category_id || '');
+    setBrandId(purchase.brand_id || '');
+    setSupplierId(purchase.supplier_id || '');
+    setMfgDate(purchase.mfg_date || '');
+    setExpDate(purchase.exp_date || '');
+    setPurchaseDate(purchase.purchase_date || '');
+    setQuantity(purchase.quantity || '');
+    setUnit(purchase.unit || '');
+    setPurchasePrice(purchase.purchase_price || '');
+    setSalePrice(purchase.sale_price || '');
+    setMinWholesaleQty(purchase.min_wholesale_qty || '');
+    setWholesalePrice(purchase.wholesale_price || '');
+    setGst(purchase.gst || '');
+    setTotalAmount(purchase.total_amount || '');
   };
 
   const confirmDelete = (id) => {
@@ -1198,8 +1276,9 @@ export default function Purchase() {
                   Item Barcode
                 </label>
                 <input
+                  ref={itemBarcodeRef}
                   type="text"
-                  value={itemBarcode}
+                  value={itemBarcode || ''}
                   onChange={(e) => setItemBarcode(e.target.value)}
                   className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -1210,8 +1289,9 @@ export default function Purchase() {
                   Box Barcode
                 </label>
                 <input
+                  ref={boxBarcodeRef}
                   type="text"
-                  value={boxBarcode}
+                  value={boxBarcode || ''}
                   onChange={(e) => setBoxBarcode(e.target.value)}
                   className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 />
@@ -1222,8 +1302,9 @@ export default function Purchase() {
                   Category
                 </label>
                 <input
+                  ref={categoryRef}
                   type="text"
-                  value={categorySearch}
+                  value={categorySearch || ''}
                   onChange={handleCategorySearchInputChange}
                   onFocus={() => setShowCategoryDropdown(true)}
                   onBlur={() => setTimeout(() => setShowCategoryDropdown(false), 200)}
@@ -1244,7 +1325,7 @@ export default function Purchase() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <input type="hidden" value={categoryId} />
+                <input type="hidden" value={categoryId || ''} />
 
                 {showCategoryDropdown && filteredCategoriesForSearch.length > 0 && (
                   <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
@@ -1276,8 +1357,9 @@ export default function Purchase() {
                   Sub-Category
                 </label>
                 <input
+                  ref={subCategoryRef}
                   type="text"
-                  value={subCategorySearch}
+                  value={subCategorySearch || ''}
                   onChange={handleSubCategorySearchInputChange}
                   onFocus={() => setShowSubCategoryDropdown(true)}
                   onBlur={() => setTimeout(() => setShowSubCategoryDropdown(false), 200)}
@@ -1298,7 +1380,7 @@ export default function Purchase() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <input type="hidden" value={subCategoryId} />
+                <input type="hidden" value={subCategoryId || ''} />
 
                 {showSubCategoryDropdown && filteredSubCategoriesForSearch.length > 0 && (
                   <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
@@ -1330,8 +1412,9 @@ export default function Purchase() {
                   Brand
                 </label>
                 <input
+                  ref={brandRef}
                   type="text"
-                  value={brandSearch}
+                  value={brandSearch || ''}
                   onChange={handleBrandSearchInputChange}
                   onFocus={() => setShowBrandDropdown(true)}
                   onBlur={() => setTimeout(() => setShowBrandDropdown(false), 200)}
@@ -1352,7 +1435,7 @@ export default function Purchase() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <input type="hidden" value={brandId} />
+                <input type="hidden" value={brandId || ''} />
 
                 {showBrandDropdown && filteredBrandsForSearch.length > 0 && (
                   <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
@@ -1384,8 +1467,9 @@ export default function Purchase() {
                   MFG Date
                 </label>
                 <input
+                  ref={mfgDateRef}
                   type="date"
-                  value={mfgDate}
+                  value={mfgDate || ''}
                   onChange={(e) => setMfgDate(e.target.value)}
                   className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500"
                 />
@@ -1396,8 +1480,9 @@ export default function Purchase() {
                   EXP Date
                 </label>
                 <input
+                  ref={expDateRef}
                   type="date"
-                  value={expDate}
+                  value={expDate || ''}
                   onChange={(e) => setExpDate(e.target.value)}
                   className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500"
                 />
@@ -1408,8 +1493,9 @@ export default function Purchase() {
                   Supplier
                 </label>
                 <input
+                  ref={supplierRef}
                   type="text"
-                  value={supplierSearch}
+                  value={supplierSearch || ''}
                   onChange={handleSupplierSearchInputChange}
                   onFocus={() => setShowSupplierDropdown(true)}
                   onBlur={() => setTimeout(() => setShowSupplierDropdown(false), 200)}
@@ -1425,7 +1511,7 @@ export default function Purchase() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <input type="hidden" value={supplierId} />
+                <input type="hidden" value={supplierId || ''} />
 
                 {showSupplierDropdown && filteredSuppliersForSearch.length > 0 && (
                   <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
@@ -1437,7 +1523,10 @@ export default function Purchase() {
                           index === selectedSupplierIndex ? 'bg-blue-100' : ''
                         }`}
                       >
-                        {supplier.supplier_name}
+                        <div className="font-medium text-gray-900">{supplier.supplier_name}</div>
+                        {supplier.type_of_item && (
+                          <div className="text-xs text-gray-500 mt-0.5">Item Type: {supplier.type_of_item}</div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1462,8 +1551,9 @@ export default function Purchase() {
                   Purchase Date
                 </label>
                 <input
+                  ref={purchaseDateRef}
                   type="date"
-                  value={purchaseDate}
+                  value={purchaseDate || ''}
                   onChange={(e) => setPurchaseDate(e.target.value)}
                   className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-green-500 focus:border-green-500"
                 />
@@ -1475,8 +1565,9 @@ export default function Purchase() {
                   Unit
                 </label>
                 <input
+                  ref={unitRef}
                   type="text"
-                  value={unitSearch}
+                  value={unitSearch || ''}
                   onChange={handleUnitSearchInputChange}
                   onFocus={() => setShowUnitDropdown(true)}
                   onBlur={() => setTimeout(() => setShowUnitDropdown(false), 200)}
@@ -1492,7 +1583,7 @@ export default function Purchase() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                <input type="hidden" value={unit} />
+                <input type="hidden" value={unit || ''} />
 
                 {showUnitDropdown && filteredUnitsForSearch.length > 0 && (
                   <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
@@ -1526,9 +1617,10 @@ export default function Purchase() {
                     Quantity
                   </label>
                   <input
+                    ref={quantityRef}
                     type="number"
                     step="0.01"
-                    value={quantity}
+                    value={quantity || ''}
                     onChange={(e) => setQuantity(e.target.value)}
                     className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 bg-gray-50"
                   />
@@ -1627,7 +1719,7 @@ export default function Purchase() {
                       <input
                         type="number"
                         step="1"
-                        value={numCartons}
+                        value={numCartons || ''}
                         onChange={(e) => setNumCartons(e.target.value)}
                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500"
                         placeholder="5"
@@ -1640,7 +1732,7 @@ export default function Purchase() {
                       <input
                         type="number"
                         step="1"
-                        value={boxesPerCarton}
+                        value={boxesPerCarton || ''}
                         onChange={(e) => setBoxesPerCarton(e.target.value)}
                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500"
                         placeholder="12"
@@ -1653,7 +1745,7 @@ export default function Purchase() {
                       <input
                         type="number"
                         step="1"
-                        value={piecesPerBox}
+                        value={piecesPerBox || ''}
                         onChange={(e) => setPiecesPerBox(e.target.value)}
                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500"
                         placeholder="24"
@@ -1672,7 +1764,7 @@ export default function Purchase() {
                       <input
                         type="number"
                         step="1"
-                        value={numBoxes}
+                        value={numBoxes || ''}
                         onChange={(e) => setNumBoxes(e.target.value)}
                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500"
                         placeholder="10"
@@ -1685,7 +1777,7 @@ export default function Purchase() {
                       <input
                         type="number"
                         step="1"
-                        value={piecesPerBox}
+                        value={piecesPerBox || ''}
                         onChange={(e) => setPiecesPerBox(e.target.value)}
                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500"
                         placeholder="24"
@@ -1704,7 +1796,7 @@ export default function Purchase() {
                       <input
                         type="number"
                         step="1"
-                        value={numPieces}
+                        value={numPieces || ''}
                         onChange={(e) => setNumPieces(e.target.value)}
                         className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500"
                         placeholder="100"
@@ -1725,7 +1817,7 @@ export default function Purchase() {
                   <input
                     type="number"
                     step="0.01"
-                    value={quantity}
+                    value={quantity || ''}
                     onChange={(e) => setQuantity(e.target.value)}
                     className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-purple-500 focus:border-purple-500 bg-gray-50"
                     readOnly={(useCartonPackaging || useBoxPackaging || usePiecesPackaging)}
@@ -1745,9 +1837,10 @@ export default function Purchase() {
                 <div className="relative">
                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">Rs.</span>
                   <input
+                    ref={purchasePriceRef}
                     type="number"
                     step="0.01"
-                    value={purchasePrice}
+                    value={purchasePrice || ''}
                     onChange={(e) => setPurchasePrice(e.target.value)}
                     className="w-full pl-8 pr-2 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
                   />
@@ -1761,9 +1854,10 @@ export default function Purchase() {
                 <div className="relative">
                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">Rs.</span>
                   <input
+                    ref={salePriceRef}
                     type="number"
                     step="0.01"
-                    value={salePrice}
+                    value={salePrice || ''}
                     onChange={(e) => setSalePrice(e.target.value)}
                     className="w-full pl-8 pr-2 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
                   />
@@ -1777,9 +1871,10 @@ export default function Purchase() {
                 <div className="relative">
                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">Rs.</span>
                   <input
+                    ref={wholesalePriceRef}
                     type="number"
                     step="0.01"
-                    value={wholesalePrice}
+                    value={wholesalePrice || ''}
                     onChange={(e) => setWholesalePrice(e.target.value)}
                     className="w-full pl-8 pr-2 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
                   />
@@ -1791,9 +1886,10 @@ export default function Purchase() {
                   Min Wholesale Qty
                 </label>
                 <input
+                  ref={minWholesaleQtyRef}
                   type="number"
                   step="0.01"
-                  value={minWholesaleQty}
+                  value={minWholesaleQty || ''}
                   onChange={(e) => setMinWholesaleQty(e.target.value)}
                   className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
                   placeholder="Min qty"
@@ -1806,9 +1902,10 @@ export default function Purchase() {
                 </label>
                 <div className="relative">
                   <input
+                    ref={gstRef}
                     type="number"
                     step="0.01"
-                    value={gst}
+                    value={gst || ''}
                     onChange={(e) => setGst(e.target.value)}
                     className="w-full px-2.5 py-1.5 pr-6 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
                   />
@@ -1824,7 +1921,7 @@ export default function Purchase() {
                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-amber-700 text-xs font-bold">Rs.</span>
                   <input
                     type="text"
-                    value={totalAmount}
+                    value={totalAmount || ''}
                     readOnly
                     className="w-full pl-8 pr-2 py-1.5 text-xs border border-amber-400 rounded-md bg-amber-100 font-bold text-amber-800"
                   />
@@ -1834,7 +1931,7 @@ export default function Purchase() {
 
             {/* Payment Details Row with Button */}
             <div className="grid grid-cols-12 gap-2 mt-3 items-end">
-              <div className="col-span-3">
+              <div className="col-span-2">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Paid Amount
                 </label>
@@ -1850,7 +1947,7 @@ export default function Purchase() {
                 </div>
               </div>
 
-              <div className="col-span-3">
+              <div className="col-span-2">
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
                   Due Amount
                 </label>
@@ -1861,6 +1958,21 @@ export default function Purchase() {
                     value={dueAmount}
                     readOnly
                     className="w-full pl-8 pr-2 py-1.5 text-xs border border-red-400 rounded-md bg-red-50 font-bold text-red-800"
+                  />
+                </div>
+              </div>
+
+              <div className="col-span-2">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Extra Amount
+                </label>
+                <div className="relative">
+                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-green-700 text-xs font-bold">Rs.</span>
+                  <input
+                    type="text"
+                    value={extraAmount}
+                    readOnly
+                    className="w-full pl-8 pr-2 py-1.5 text-xs border border-green-400 rounded-md bg-green-50 font-bold text-green-800"
                   />
                 </div>
               </div>
@@ -1948,7 +2060,7 @@ export default function Purchase() {
                         </label>
                         <input
                           type="number"
-                          value={cartons}
+                          value={cartons || ''}
                           onChange={(e) => setCartons(e.target.value)}
                           className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                           placeholder="Enter number of cartons"
@@ -2013,7 +2125,7 @@ export default function Purchase() {
                         </label>
                         <input
                           type="number"
-                          value={boxes}
+                          value={boxes || ''}
                           onChange={(e) => setBoxes(e.target.value)}
                           className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="Enter number of boxes"
@@ -2065,7 +2177,7 @@ export default function Purchase() {
                         </label>
                         <input
                           type="number"
-                          value={packs}
+                          value={packs || ''}
                           onChange={(e) => setPacks(e.target.value)}
                           className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                           placeholder={`Enter number of ${packagingType}s`}
@@ -2079,7 +2191,7 @@ export default function Purchase() {
                         </label>
                         <input
                           type="number"
-                          value={piecesPerPack}
+                          value={piecesPerPack || ''}
                           onChange={(e) => setPiecesPerPack(e.target.value)}
                           className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                           placeholder={`How many pieces in each ${packagingType}?`}

@@ -129,8 +129,8 @@ export default function Units() {
             const submitBtn = document.querySelector('button[type="submit"]');
             if (submitBtn) submitBtn.focus();
           }
-        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-          // Navigate between form fields using Left/Right arrows
+        } else if (e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+          // Navigate between form fields using Shift + Left/Right arrows
           e.preventDefault();
           const form = document.querySelector('form');
           if (form) {
@@ -149,7 +149,9 @@ export default function Units() {
               }
             }
           }
-        } else if (e.key === 'ArrowDown') {
+        }
+        // Normal arrow keys (without Shift) work for text cursor movement
+        else if (e.key === 'ArrowDown') {
           // Navigate down to next form field
           e.preventDefault();
           const inputs = document.querySelectorAll('input[type="text"]');
@@ -276,8 +278,8 @@ export default function Units() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!unitName.trim() || !unitCode.trim()) {
-      showToast('error', 'Please fill in all fields');
+    if (!unitName.trim()) {
+      showToast('error', 'Please enter unit name');
       return;
     }
 
