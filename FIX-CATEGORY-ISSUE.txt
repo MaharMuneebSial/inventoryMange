@@ -1,0 +1,50 @@
+HOW TO FIX THE "NOT NULL constraint failed: products.category_id" ERROR
+================================================================================
+
+The code has been updated to make Category, Sub-Category, and Brand optional.
+However, your current database still has the old schema with NOT NULL constraints.
+
+SOLUTION: Reset the database to create a new one with the updated schema.
+
+STEPS TO FIX:
+-------------
+
+1. Close the application completely (close all windows)
+
+2. Double-click on "reset-database.bat" in this folder
+
+3. Wait for the app to restart automatically
+
+4. Done! Now you can add products with only Product Name (all other fields are optional)
+
+
+WHAT THE SCRIPT DOES:
+--------------------
+- Stops all Node.js and Electron processes
+- Deletes the old database file (located at %APPDATA%\my-app\inventory.db)
+- Creates a new database with the updated schema
+- Starts the application
+
+
+NOTE:
+-----
+⚠️ This will DELETE ALL your existing data in the database!
+⚠️ Make sure you have a backup if you need to keep your data.
+
+If you want to keep your data, you'll need to export it first before running the reset.
+
+
+ALTERNATIVE (Manual Method):
+----------------------------
+If the batch file doesn't work, you can manually:
+
+1. Close the application
+2. Press Windows + R
+3. Type: %APPDATA%\my-app
+4. Press Enter
+5. Delete the "inventory.db" file
+6. Restart the application
+
+
+After following these steps, the error will be gone and you can add products
+with only the Product Name field - all other fields will be optional!

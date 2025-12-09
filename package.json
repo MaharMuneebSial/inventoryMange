@@ -2,18 +2,44 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "electron": "concurrently \"cross-env BROWSER=none npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron:build": "next build && electron-builder",
+    "electron:dev": "electron .",
+    "clean": "rd /s /q .next 2>nul || echo Clean complete"
+  },
+  "build": {
+    "appId": "com.inventory.app",
+    "files": [
+      "electron/**/*",
+      "out/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "assets",
+      "output": "dist"
+    }
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.86.0",
     "next": "16.0.6",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "sql.js": "^1.13.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4"
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^39.2.4",
+    "electron-builder": "^26.0.12",
+    "electron-rebuild": "^3.2.9",
+    "tailwindcss": "^4",
+    "wait-on": "^9.0.3"
   }
 }
