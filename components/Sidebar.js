@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function Sidebar({ activePage = '' }) {
+export default function Sidebar({ activePage = '', activeTab = '', setActiveTab = null }) {
   // Auto-open Files dropdown if user is on dashboard or any Initial System Setup page
   const isDashboardPage = activePage === 'dashboard' || activePage === '';
   const [filesDropdownOpen, setFilesDropdownOpen] = useState(isDashboardPage);
@@ -134,11 +134,19 @@ export default function Sidebar({ activePage = '' }) {
           {filesDropdownOpen && (
             <div className="ml-2 pl-3 border-l-2 border-slate-700 space-y-0.5">
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => {
+                  if (setActiveTab) {
+                    setActiveTab('category');
+                  } else {
+                    router.push('/dashboard');
+                  }
+                }}
                 onFocus={() => setSelectedMenuIndex(1)}
-                className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-all duration-200 text-slate-400 hover:bg-slate-700/50 hover:text-white ${
-                  selectedMenuIndex === 1 ? 'ring-2 ring-yellow-400 bg-slate-700/50' : ''
-                }`}
+                className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-all duration-200 ${
+                  activeTab === 'category'
+                    ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/30'
+                    : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                } ${selectedMenuIndex === 1 ? 'ring-2 ring-yellow-400' : ''}`}
               >
                 <div className="flex items-center gap-1.5">
                   <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -148,11 +156,19 @@ export default function Sidebar({ activePage = '' }) {
                 </div>
               </button>
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => {
+                  if (setActiveTab) {
+                    setActiveTab('sub-category');
+                  } else {
+                    router.push('/dashboard');
+                  }
+                }}
                 onFocus={() => setSelectedMenuIndex(2)}
-                className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-all duration-200 text-slate-400 hover:bg-slate-700/50 hover:text-white ${
-                  selectedMenuIndex === 2 ? 'ring-2 ring-yellow-400 bg-slate-700/50' : ''
-                }`}
+                className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-all duration-200 ${
+                  activeTab === 'sub-category'
+                    ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/30'
+                    : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                } ${selectedMenuIndex === 2 ? 'ring-2 ring-yellow-400' : ''}`}
               >
                 <div className="flex items-center gap-1.5">
                   <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -162,11 +178,19 @@ export default function Sidebar({ activePage = '' }) {
                 </div>
               </button>
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => {
+                  if (setActiveTab) {
+                    setActiveTab('brand');
+                  } else {
+                    router.push('/dashboard');
+                  }
+                }}
                 onFocus={() => setSelectedMenuIndex(3)}
-                className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-all duration-200 text-slate-400 hover:bg-slate-700/50 hover:text-white ${
-                  selectedMenuIndex === 3 ? 'ring-2 ring-yellow-400 bg-slate-700/50' : ''
-                }`}
+                className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-all duration-200 ${
+                  activeTab === 'brand'
+                    ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/30'
+                    : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                } ${selectedMenuIndex === 3 ? 'ring-2 ring-yellow-400' : ''}`}
               >
                 <div className="flex items-center gap-1.5">
                   <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -176,11 +200,19 @@ export default function Sidebar({ activePage = '' }) {
                 </div>
               </button>
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => {
+                  if (setActiveTab) {
+                    setActiveTab('supplier');
+                  } else {
+                    router.push('/dashboard');
+                  }
+                }}
                 onFocus={() => setSelectedMenuIndex(4)}
-                className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-all duration-200 text-slate-400 hover:bg-slate-700/50 hover:text-white ${
-                  selectedMenuIndex === 4 ? 'ring-2 ring-yellow-400 bg-slate-700/50' : ''
-                }`}
+                className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-all duration-200 ${
+                  activeTab === 'supplier'
+                    ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/30'
+                    : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                } ${selectedMenuIndex === 4 ? 'ring-2 ring-yellow-400' : ''}`}
               >
                 <div className="flex items-center gap-1.5">
                   <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -190,11 +222,19 @@ export default function Sidebar({ activePage = '' }) {
                 </div>
               </button>
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => {
+                  if (setActiveTab) {
+                    setActiveTab('unit');
+                  } else {
+                    router.push('/dashboard');
+                  }
+                }}
                 onFocus={() => setSelectedMenuIndex(5)}
-                className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-all duration-200 text-slate-400 hover:bg-slate-700/50 hover:text-white ${
-                  selectedMenuIndex === 5 ? 'ring-2 ring-yellow-400 bg-slate-700/50' : ''
-                }`}
+                className={`w-full text-left px-2 py-1.5 rounded text-xs font-medium transition-all duration-200 ${
+                  activeTab === 'unit'
+                    ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-lg shadow-teal-500/30'
+                    : 'text-slate-400 hover:bg-slate-700/50 hover:text-white'
+                } ${selectedMenuIndex === 5 ? 'ring-2 ring-yellow-400' : ''}`}
               >
                 <div className="flex items-center gap-1.5">
                   <svg className="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -214,7 +254,7 @@ export default function Sidebar({ activePage = '' }) {
           onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 6 : 1)}
           className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
             activePage === 'product-entry'
-              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+              ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-md'
               : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
           } ${selectedMenuIndex === (filesDropdownOpen ? 6 : 1) ? 'ring-2 ring-yellow-400' : ''}`}
         >
@@ -232,7 +272,7 @@ export default function Sidebar({ activePage = '' }) {
           onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 7 : 2)}
           className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
             activePage === 'sale'
-              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+              ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-md'
               : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
           } ${selectedMenuIndex === (filesDropdownOpen ? 7 : 2) ? 'ring-2 ring-yellow-400' : ''}`}
         >
@@ -251,7 +291,7 @@ export default function Sidebar({ activePage = '' }) {
           onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 8 : 3)}
           className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
             activePage === 'sales-list'
-              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+              ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-md'
               : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
           } ${selectedMenuIndex === (filesDropdownOpen ? 8 : 3) ? 'ring-2 ring-yellow-400' : ''}`}
         >
@@ -269,7 +309,7 @@ export default function Sidebar({ activePage = '' }) {
           onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 9 : 4)}
           className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
             activePage === 'sale-return'
-              ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-md'
+              ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-md'
               : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
           } ${selectedMenuIndex === (filesDropdownOpen ? 9 : 4) ? 'ring-2 ring-yellow-400' : ''}`}
         >
@@ -287,7 +327,7 @@ export default function Sidebar({ activePage = '' }) {
           onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 10 : 5)}
           className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
             activePage === 'purchase'
-              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+              ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-md'
               : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
           } ${selectedMenuIndex === (filesDropdownOpen ? 10 : 5) ? 'ring-2 ring-yellow-400' : ''}`}
         >
@@ -305,7 +345,7 @@ export default function Sidebar({ activePage = '' }) {
           onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 11 : 6)}
           className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
             activePage === 'purchase-list'
-              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+              ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-md'
               : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
           } ${selectedMenuIndex === (filesDropdownOpen ? 11 : 6) ? 'ring-2 ring-yellow-400' : ''}`}
         >
@@ -324,7 +364,7 @@ export default function Sidebar({ activePage = '' }) {
           onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 13 : 8)}
           className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
             activePage === 'purchase-return'
-              ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-md'
+              ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-md'
               : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
           } ${selectedMenuIndex === (filesDropdownOpen ? 13 : 8) ? 'ring-2 ring-yellow-400' : ''}`}
         >
@@ -342,7 +382,7 @@ export default function Sidebar({ activePage = '' }) {
           onFocus={() => setSelectedMenuIndex(filesDropdownOpen ? 14 : 9)}
           className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
             activePage === 'purchase-return-list'
-              ? 'bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-md'
+              ? 'bg-gradient-to-r from-teal-600 to-cyan-600 text-white shadow-md'
               : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
           } ${selectedMenuIndex === (filesDropdownOpen ? 14 : 9) ? 'ring-2 ring-yellow-400' : ''}`}
         >

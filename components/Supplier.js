@@ -413,9 +413,9 @@ export default function Supplier() {
       )}
 
       {/* Form Section - Compact */}
-      <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-3 border border-orange-100">
+      <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg p-3 border border-teal-100">
         <h2 className="text-sm font-bold text-gray-800 mb-2 flex items-center gap-2">
-          <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           {editingId ? 'Edit Supplier' : 'Add New Supplier'}
@@ -429,14 +429,14 @@ export default function Supplier() {
               value={supplierName}
               onChange={(e) => setSupplierName(e.target.value)}
               required
-              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none"
               placeholder="Supplier Name *"
             />
             <input
               type="text"
               value={supplierCode}
               onChange={(e) => setSupplierCode(e.target.value)}
-              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none"
               placeholder="Code"
             />
             <input
@@ -444,21 +444,21 @@ export default function Supplier() {
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               required
-              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none"
               placeholder="Phone *"
             />
             <input
               type="text"
               value={whatsappNumber}
               onChange={(e) => setWhatsappNumber(e.target.value)}
-              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none"
               placeholder="WhatsApp"
             />
             <input
               type="text"
               value={typeOfItem}
               onChange={(e) => setTypeOfItem(e.target.value)}
-              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none"
               placeholder="Item Type"
             />
           </div>
@@ -468,35 +468,35 @@ export default function Supplier() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none"
               placeholder="Email"
             />
             <input
               type="text"
               value={jazzcashEasypaisa}
               onChange={(e) => setJazzcashEasypaisa(e.target.value)}
-              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none"
               placeholder="JazzCash/Easypaisa"
             />
             <input
               type="text"
               value={bankAccountNumber}
               onChange={(e) => setBankAccountNumber(e.target.value)}
-              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none"
               placeholder="Bank Account"
             />
             <input
               type="text"
               value={bankName}
               onChange={(e) => setBankName(e.target.value)}
-              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none"
+              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none"
               placeholder="Bank Name"
             />
             <textarea
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               rows="1"
-              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-orange-500 focus:border-orange-500 outline-none resize-none"
+              className="px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-1 focus:ring-teal-500 focus:border-teal-500 outline-none resize-none"
               placeholder="Address"
             />
           </div>
@@ -505,7 +505,7 @@ export default function Supplier() {
             <button
               type="submit"
               disabled={loading}
-              className="px-3 py-1.5 text-xs bg-orange-600 text-white rounded-md hover:bg-orange-700 focus:outline-none focus:ring-1 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
+              className="px-3 py-1.5 text-xs bg-teal-600 text-white rounded-md hover:bg-teal-700 focus:outline-none focus:ring-1 focus:ring-teal-500 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
             >
               {loading ? 'Saving...' : editingId ? 'Update' : 'Add'}
             </button>
@@ -527,7 +527,7 @@ export default function Supplier() {
       <div className="flex-1 flex flex-col min-h-0">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-            <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
             Suppliers List
@@ -540,7 +540,7 @@ export default function Supplier() {
         <div className="flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div className="overflow-x-auto flex-1">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gradient-to-r from-orange-600 to-red-600 sticky top-0">
+              <thead className="bg-gradient-to-r from-teal-600 to-cyan-600 sticky top-0">
                 <tr>
                   <th className="px-3 py-2 text-left text-xs font-bold text-white uppercase tracking-wider">
                     ID
@@ -576,7 +576,7 @@ export default function Supplier() {
                   </tr>
                 ) : (
                   currentItems.map((supplier, index) => (
-                    <tr key={supplier.id} className={`hover:bg-orange-50 transition-colors ${
+                    <tr key={supplier.id} className={`hover:bg-teal-50 transition-colors ${
                       index === selectedRow ? 'bg-yellow-50 ring-2 ring-yellow-400' : ''
                     }`}>
                       <td className="px-3 py-2 whitespace-nowrap text-xs font-semibold text-gray-900">
@@ -586,7 +586,7 @@ export default function Supplier() {
                         {supplier.supplier_name}
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
-                        <span className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full font-medium">
+                        <span className="px-2 py-0.5 bg-teal-100 text-teal-700 rounded-full font-medium">
                           {supplier.supplier_code}
                         </span>
                       </td>
@@ -600,8 +600,8 @@ export default function Supplier() {
                         <div className="flex gap-1">
                           <button
                             onClick={() => handleEdit(supplier)}
-                            className={`p-1 text-orange-600 hover:bg-orange-100 rounded transition-all ${
-                              index === selectedRow && selectedAction === 0 ? 'ring-2 ring-orange-400 bg-orange-100' : ''
+                            className={`p-1 text-teal-600 hover:bg-teal-100 rounded transition-all ${
+                              index === selectedRow && selectedAction === 0 ? 'ring-2 ring-teal-400 bg-teal-100' : ''
                             }`}
                             title="Edit"
                           >
@@ -636,7 +636,7 @@ export default function Supplier() {
                 <button
                   onClick={() => paginate(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="pagination-btn px-3 py-1.5 text-sm border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium text-gray-700 focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                  className="pagination-btn px-3 py-1.5 text-sm border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium text-gray-700 focus:ring-2 focus:ring-teal-500 focus:outline-none"
                 >
                   Previous
                 </button>
@@ -644,7 +644,7 @@ export default function Supplier() {
                   <button
                     key={index + 1}
                     onClick={() => paginate(index + 1)}
-                    className={`pagination-btn px-3 py-1.5 text-sm border rounded font-medium transition focus:ring-2 focus:ring-orange-500 focus:outline-none ${
+                    className={`pagination-btn px-3 py-1.5 text-sm border rounded font-medium transition focus:ring-2 focus:ring-teal-500 focus:outline-none ${
                       currentPage === index + 1
                         ? 'bg-teal-600 text-white border-teal-600'
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
@@ -656,7 +656,7 @@ export default function Supplier() {
                 <button
                   onClick={() => paginate(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="pagination-btn px-3 py-1.5 text-sm border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium text-gray-700 focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                  className="pagination-btn px-3 py-1.5 text-sm border border-gray-300 rounded bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium text-gray-700 focus:ring-2 focus:ring-teal-500 focus:outline-none"
                 >
                   Next
                 </button>

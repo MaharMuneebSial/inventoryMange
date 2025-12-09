@@ -204,7 +204,7 @@ export default function PurchaseReturnList() {
         >
           <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-100">
             {/* Modal Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-orange-600 to-red-600 text-white px-4 py-3 rounded-t-lg">
+            <div className="sticky top-0 bg-gradient-to-r from-teal-600 to-cyan-600 text-white px-4 py-3 rounded-t-lg">
               <div className="flex justify-between items-center">
                 <h3 className="text-sm font-bold">Purchase Return Details - {selectedReturn.return_id}</h3>
                 <button
@@ -242,9 +242,9 @@ export default function PurchaseReturnList() {
                   <p className="text-xs text-gray-600 font-medium mb-1">Processed By</p>
                   <p className="text-xs font-semibold text-gray-900">{selectedReturn.processed_by || 'N/A'}</p>
                 </div>
-                <div className="bg-orange-50 p-2 rounded-lg border border-orange-200">
+                <div className="bg-teal-50 p-2 rounded-lg border border-teal-200">
                   <p className="text-xs text-gray-600 font-medium mb-1">Total Credit</p>
-                  <p className="text-sm font-bold text-orange-600">Rs. {parseFloat(selectedReturn.total_credit_amount).toFixed(2)}</p>
+                  <p className="text-sm font-bold text-teal-600">Rs. {parseFloat(selectedReturn.total_credit_amount).toFixed(2)}</p>
                 </div>
               </div>
 
@@ -270,7 +270,7 @@ export default function PurchaseReturnList() {
                           <td className="px-2 py-1.5 text-xs text-gray-900">{item.quantity}</td>
                           <td className="px-2 py-1.5 text-xs text-gray-900 uppercase">{item.unit}</td>
                           <td className="px-2 py-1.5 text-xs text-gray-900">Rs. {parseFloat(item.rate_per_unit).toFixed(2)}</td>
-                          <td className="px-2 py-1.5 text-xs font-semibold text-orange-600">Rs. {parseFloat(item.credit_amount).toFixed(2)}</td>
+                          <td className="px-2 py-1.5 text-xs font-semibold text-teal-600">Rs. {parseFloat(item.credit_amount).toFixed(2)}</td>
                           <td className="px-2 py-1.5 text-xs text-gray-600">{item.reason || '-'}</td>
                         </tr>
                       ))}
@@ -305,7 +305,7 @@ export default function PurchaseReturnList() {
       {/* Header - Compact */}
       <div className="flex justify-between items-center">
         <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-          <div className="p-1.5 bg-orange-600 rounded-lg">
+          <div className="p-1.5 bg-teal-600 rounded-lg">
             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -320,7 +320,7 @@ export default function PurchaseReturnList() {
         <button
           onClick={loadPurchaseReturns}
           onFocus={() => setSelectedRow(-1)}
-          className="px-3 py-1.5 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition flex items-center gap-1.5 text-xs font-medium"
+          className="px-3 py-1.5 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition flex items-center gap-1.5 text-xs font-medium"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -334,7 +334,7 @@ export default function PurchaseReturnList() {
         <div className="flex-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div className="overflow-x-auto flex-1">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gradient-to-r from-orange-600 to-red-600 sticky top-0">
+              <thead className="bg-gradient-to-r from-teal-600 to-cyan-600 sticky top-0">
                 <tr>
                   <th className="px-3 py-2 text-left text-xs font-bold text-white uppercase tracking-wider">Return ID</th>
                   <th className="px-3 py-2 text-left text-xs font-bold text-white uppercase tracking-wider">Purchase ID</th>
@@ -351,7 +351,7 @@ export default function PurchaseReturnList() {
                   <tr>
                     <td colSpan="8" className="px-3 py-6 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <div className="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
                         <span className="text-xs text-gray-600">Loading...</span>
                       </div>
                     </td>
@@ -371,12 +371,12 @@ export default function PurchaseReturnList() {
                   currentItems.map((returnRecord, index) => (
                     <tr
                       key={returnRecord.return_id}
-                      className={`hover:bg-orange-50 transition-colors ${
-                        selectedRow === index ? 'ring-2 ring-orange-500 bg-orange-100' : ''
+                      className={`hover:bg-teal-50 transition-colors ${
+                        selectedRow === index ? 'ring-2 ring-teal-500 bg-teal-100' : ''
                       }`}
                     >
                       <td className="px-3 py-2 whitespace-nowrap">
-                        <span className="text-xs font-semibold text-orange-600">{returnRecord.return_id}</span>
+                        <span className="text-xs font-semibold text-teal-600">{returnRecord.return_id}</span>
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
                         #{returnRecord.original_purchase_id}
@@ -391,7 +391,7 @@ export default function PurchaseReturnList() {
                         {formatTime(returnRecord.return_time)}
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap">
-                        <span className="text-xs font-bold text-orange-600">Rs. {parseFloat(returnRecord.total_credit_amount).toFixed(2)}</span>
+                        <span className="text-xs font-bold text-teal-600">Rs. {parseFloat(returnRecord.total_credit_amount).toFixed(2)}</span>
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
                         {returnRecord.processed_by || 'N/A'}
@@ -403,7 +403,7 @@ export default function PurchaseReturnList() {
                             handleViewDetails(returnRecord);
                           }}
                           onFocus={() => setSelectedRow(-1)}
-                          className="p-1 text-orange-600 hover:bg-orange-100 rounded transition-all"
+                          className="p-1 text-teal-600 hover:bg-teal-100 rounded transition-all"
                           title="View Details"
                         >
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -444,7 +444,7 @@ export default function PurchaseReturnList() {
                     onFocus={() => setSelectedRow(-1)}
                     className={`px-3 py-1.5 text-sm border rounded font-medium transition ${
                       currentPage === index + 1
-                        ? 'bg-orange-600 text-white border-orange-600'
+                        ? 'bg-teal-600 text-white border-teal-600'
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                     }`}
                   >
@@ -471,7 +471,7 @@ export default function PurchaseReturnList() {
       {/* Summary Cards - Compact */}
       {purchaseReturns.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-3 rounded-lg shadow-sm text-white">
+          <div className="bg-gradient-to-br from-teal-600 to-cyan-600 p-3 rounded-lg shadow-sm text-white">
             <p className="text-xs font-medium opacity-90">Total Returns</p>
             <p className="text-2xl font-bold mt-1">{totalReturns}</p>
           </div>

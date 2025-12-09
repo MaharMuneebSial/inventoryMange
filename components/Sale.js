@@ -1082,7 +1082,7 @@ export default function Sale() {
               <button
                 onClick={clearCart}
                 disabled={cart.length === 0}
-                className="w-full px-3 py-1.5 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-3 py-1.5 bg-teal-100 text-teal-700 rounded-md hover:bg-teal-200 transition text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Clear Cart
               </button>

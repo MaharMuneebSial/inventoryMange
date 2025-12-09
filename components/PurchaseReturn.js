@@ -207,8 +207,8 @@ export default function PurchaseReturn() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-orange-100 rounded-full">
-                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-3 bg-teal-100 rounded-full">
+                <svg className="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
@@ -229,7 +229,7 @@ export default function PurchaseReturn() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Return Quantity:</span>
-                <span className="font-bold text-orange-600">{returnQuantity} {selectedItem?.unit}</span>
+                <span className="font-bold text-teal-600">{returnQuantity} {selectedItem?.unit}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Rate per Unit:</span>
@@ -298,7 +298,7 @@ export default function PurchaseReturn() {
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-          <div className="p-1.5 bg-gradient-to-r from-orange-600 to-red-600 rounded-lg">
+          <div className="p-1.5 bg-gradient-to-r from-teal-600 to-cyan-600 rounded-lg">
             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -326,7 +326,7 @@ export default function PurchaseReturn() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full px-2.5 py-1.5 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 outline-none"
               placeholder="Search by product name, SKU, or supplier..."
               autoFocus
             />
@@ -334,17 +334,17 @@ export default function PurchaseReturn() {
 
           {/* Selected Item Display */}
           {selectedItem && (
-            <div className="bg-gradient-to-br from-orange-50 to-red-50 p-3 rounded-lg border-2 border-orange-300">
+            <div className="bg-gradient-to-br from-teal-50 to-cyan-50 p-3 rounded-lg border-2 border-teal-300">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <div className="font-bold text-sm text-gray-900 mb-1">{selectedItem.product_name}</div>
                   <div className="flex items-center gap-2 text-xs text-gray-600">
                     {selectedItem.sku && (
-                      <span className="font-mono bg-white px-2 py-0.5 rounded border border-orange-200">
+                      <span className="font-mono bg-white px-2 py-0.5 rounded border border-teal-200">
                         {selectedItem.sku}
                       </span>
                     )}
-                    <span className="text-orange-600 font-semibold">{selectedItem.supplier_name}</span>
+                    <span className="text-teal-600 font-semibold">{selectedItem.supplier_name}</span>
                   </div>
                 </div>
                 <button
@@ -358,20 +358,20 @@ export default function PurchaseReturn() {
                 </button>
               </div>
               <div className="grid grid-cols-3 gap-2 text-xs">
-                <div className="bg-white p-2 rounded border border-orange-200">
+                <div className="bg-white p-2 rounded border border-teal-200">
                   <div className="text-gray-600">Purchased</div>
                   <div className="font-bold text-gray-900">{selectedItem.quantity} {selectedItem.unit}</div>
                 </div>
-                <div className="bg-white p-2 rounded border border-orange-200">
+                <div className="bg-white p-2 rounded border border-teal-200">
                   <div className="text-gray-600">Returned</div>
                   <div className="font-bold text-red-600">{selectedItem.total_returned} {selectedItem.unit}</div>
                 </div>
-                <div className="bg-white p-2 rounded border border-orange-200">
+                <div className="bg-white p-2 rounded border border-teal-200">
                   <div className="text-gray-600">Available</div>
-                  <div className="font-bold text-orange-600">{selectedItem.remaining_quantity} {selectedItem.unit}</div>
+                  <div className="font-bold text-teal-600">{selectedItem.remaining_quantity} {selectedItem.unit}</div>
                 </div>
               </div>
-              <div className="mt-2 text-xs bg-white p-2 rounded border border-orange-200">
+              <div className="mt-2 text-xs bg-white p-2 rounded border border-teal-200">
                 <span className="text-gray-600">Rate:</span> <span className="font-bold text-gray-900">Rs. {selectedItem.rate_per_unit.toFixed(2)} / {selectedItem.unit}</span>
               </div>
             </div>
@@ -379,7 +379,7 @@ export default function PurchaseReturn() {
 
           {/* Product List Dropdown */}
           <div className="flex-1 bg-white rounded-lg border-2 border-gray-300 overflow-hidden flex flex-col min-h-0">
-            <div className="bg-gradient-to-r from-orange-600 to-red-600 px-3 py-2 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-teal-600 to-cyan-600 px-3 py-2 flex items-center justify-between">
               <h3 className="text-xs font-bold text-white">Select Purchased Item</h3>
               <span className="text-xs text-white bg-white/20 px-2 py-0.5 rounded">
                 {filteredItems.length} items
@@ -395,14 +395,14 @@ export default function PurchaseReturn() {
                   <div
                     key={item.item_id}
                     onClick={() => handleItemSelect(item)}
-                    className={`p-2 border-b border-gray-100 cursor-pointer transition-colors hover:bg-orange-50 ${
-                      selectedItem?.item_id === item.item_id ? 'bg-orange-100 border-l-4 border-l-orange-600' : ''
+                    className={`p-2 border-b border-gray-100 cursor-pointer transition-colors hover:bg-teal-50 ${
+                      selectedItem?.item_id === item.item_id ? 'bg-teal-100 border-l-4 border-l-teal-600' : ''
                     }`}
                   >
                     <div className="flex items-start justify-between mb-1">
                       <div className="font-semibold text-xs text-gray-900">{item.product_name}</div>
                       {item.sku && (
-                        <span className="text-xs font-mono text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded">
+                        <span className="text-xs font-mono text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded">
                           {item.sku}
                         </span>
                       )}
@@ -410,7 +410,7 @@ export default function PurchaseReturn() {
                     <div className="text-xs text-gray-600 space-y-0.5">
                       <div className="flex items-center justify-between">
                         <span>{item.supplier_name}</span>
-                        <span className="text-orange-600 font-semibold">
+                        <span className="text-teal-600 font-semibold">
                           {item.remaining_quantity} {item.unit} available
                         </span>
                       </div>
@@ -469,7 +469,7 @@ export default function PurchaseReturn() {
                       value={returnQuantity}
                       onChange={(e) => setReturnQuantity(e.target.value)}
                       onFocus={(e) => e.target.select()}
-                      className="w-full px-2.5 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 outline-none"
+                      className="w-full px-2.5 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 outline-none"
                       placeholder="0"
                       step="0.001"
                       max={selectedItem.remaining_quantity}
@@ -482,8 +482,8 @@ export default function PurchaseReturn() {
                   {/* Total Credit */}
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Total Credit Amount</label>
-                    <div className="px-3 py-2 bg-orange-50 rounded-md border-2 border-orange-300">
-                      <div className="text-xl font-bold text-orange-600">Rs. {totalCreditAmount.toFixed(2)}</div>
+                    <div className="px-3 py-2 bg-teal-50 rounded-md border-2 border-teal-300">
+                      <div className="text-xl font-bold text-teal-600">Rs. {totalCreditAmount.toFixed(2)}</div>
                     </div>
                   </div>
 
@@ -493,7 +493,7 @@ export default function PurchaseReturn() {
                     <select
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
-                      className="w-full px-2.5 py-2 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 outline-none"
+                      className="w-full px-2.5 py-2 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 outline-none"
                     >
                       <option value="">Select reason...</option>
                       <option value="expired">Expired Product</option>
@@ -514,7 +514,7 @@ export default function PurchaseReturn() {
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       rows={3}
-                      className="w-full px-2.5 py-2 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 outline-none resize-none"
+                      className="w-full px-2.5 py-2 text-xs border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 outline-none resize-none"
                       placeholder="Additional notes about the return..."
                     />
                   </div>
@@ -556,7 +556,7 @@ export default function PurchaseReturn() {
           {/* Recent Returns */}
           {purchaseReturns.length > 0 && (
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden max-h-48">
-              <div className="bg-gradient-to-r from-orange-600 to-red-600 px-3 py-1.5">
+              <div className="bg-gradient-to-r from-teal-600 to-cyan-600 px-3 py-1.5">
                 <h3 className="text-xs font-semibold text-white">Recent Returns ({purchaseReturns.length})</h3>
               </div>
               <div className="overflow-y-auto max-h-32 p-2">
@@ -567,13 +567,13 @@ export default function PurchaseReturn() {
                       className="flex items-center justify-between p-1.5 bg-gray-50 rounded text-xs"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-orange-600">#{returnRecord.return_id}</span>
+                        <span className="font-bold text-teal-600">#{returnRecord.return_id}</span>
                         <span className="text-gray-500">•</span>
                         <span className="text-gray-600">{returnRecord.supplier_name}</span>
                         <span className="text-gray-500">•</span>
                         <span className="text-gray-500">{returnRecord.return_date}</span>
                       </div>
-                      <span className="font-bold text-orange-600">Rs. {returnRecord.total_credit_amount?.toFixed(2)}</span>
+                      <span className="font-bold text-teal-600">Rs. {returnRecord.total_credit_amount?.toFixed(2)}</span>
                     </div>
                   ))}
                 </div>

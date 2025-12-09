@@ -10,7 +10,10 @@
       "Bash(cmd /c start-app.bat)",
       "Bash(taskkill:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(del \"components\\DashboardSidebar.js\")",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

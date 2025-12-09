@@ -7,7 +7,7 @@ import SubCategory from '../../components/SubCategory';
 import Brand from '../../components/Brand';
 import Supplier from '../../components/Supplier';
 import Units from '../../components/Units';
-import DashboardSidebar from '../../components/DashboardSidebar';
+import Sidebar from '../../components/Sidebar';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('category');
@@ -45,7 +45,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">
-      <DashboardSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar activePage="dashboard" activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-auto flex flex-col">
