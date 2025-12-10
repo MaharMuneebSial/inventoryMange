@@ -580,7 +580,7 @@ export default function SaleReturn() {
               <div className="flex gap-4">
                 <span className="text-gray-600">Invoice: <span className="font-bold text-gray-900">{saleData.invoice_number}</span></span>
                 <span className="text-gray-600">Date: <span className="font-medium">{saleData.sale_date}</span></span>
-                <span className="text-gray-600">Total: <span className="font-bold text-teal-600">Rs. {saleData.grand_total.toFixed(2)}</span></span>
+                <span className="text-gray-600">Total: <span className="font-bold text-teal-600">Rs. {(saleData.grand_total || 0).toFixed(2)}</span></span>
                 <span className="text-gray-600">Paid via: <span className="font-medium capitalize">{saleData.payment_method}</span></span>
               </div>
               {previousReturns.length > 0 && (
@@ -686,9 +686,9 @@ export default function SaleReturn() {
                             <span className="text-xs text-gray-400">-</span>
                           )}
                         </td>
-                        <td className="px-2 py-1.5 text-xs text-right text-gray-900">Rs. {item.rate_per_unit.toFixed(2)}</td>
+                        <td className="px-2 py-1.5 text-xs text-right text-gray-900">Rs. {(item.rate_per_unit || 0).toFixed(2)}</td>
                         <td className="px-2 py-1.5 text-xs text-right font-bold text-teal-600">
-                          {isSelected ? `Rs. ${refundAmount.toFixed(2)}` : '-'}
+                          {isSelected ? `Rs. ${(refundAmount || 0).toFixed(2)}` : '-'}
                         </td>
                       </tr>
                     );
@@ -707,7 +707,7 @@ export default function SaleReturn() {
               <div className="col-span-3">
                 <label className="block text-xs font-medium text-gray-700 mb-1">Total Refund</label>
                 <div className="px-3 py-2 bg-white rounded-md border-2 border-teal-300">
-                  <div className="text-lg font-bold text-teal-600">Rs. {totalReturnAmount.toFixed(2)}</div>
+                  <div className="text-lg font-bold text-teal-600">Rs. {(totalReturnAmount || 0).toFixed(2)}</div>
                 </div>
               </div>
 
@@ -836,7 +836,7 @@ export default function SaleReturn() {
                       <span className="text-gray-500">•</span>
                       <span className="text-gray-600">{returnRecord.return_date}</span>
                     </div>
-                    <span className="font-bold text-teal-600">Rs. {returnRecord.refund_amount.toFixed(2)}</span>
+                    <span className="font-bold text-teal-600">Rs. {(returnRecord.refund_amount || 0).toFixed(2)}</span>
                   </div>
                 ))}
               </div>

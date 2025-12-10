@@ -73,12 +73,12 @@ async function initDatabase() {
 
     CREATE TABLE IF NOT EXISTS products (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      product_name TEXT NOT NULL,
-      barcode_item TEXT UNIQUE,
+      product_name TEXT,
+      barcode_item TEXT NOT NULL UNIQUE,
       barcode_box TEXT,
-      category_id INTEGER,
-      sub_category_id INTEGER,
-      brand_id INTEGER,
+      category_id INTEGER NOT NULL,
+      sub_category_id INTEGER NOT NULL,
+      brand_id INTEGER NOT NULL,
       image_path TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (category_id) REFERENCES categories(id),
@@ -178,55 +178,35 @@ async function initDatabase() {
     CREATE TABLE IF NOT EXISTS sale_returns (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       return_id TEXT NOT NULL UNIQUE,
-      original_sale_id TEXT,
-      return_date TEXT NOT NULL,
-      return_time TEXT NOT NULL,
-      product_id INTEGER NOT NULL,
-      product_name TEXT NOT NULL,
-      quantity REAL NOT NULL,
-      unit TEXT NOT NULL,
-      rate_per_unit REAL NOT NULL,
+      original_sale_id TEXT NOT NULL,
+      return_quantity REAL NOT NULL,
       refund_amount REAL NOT NULL,
       reason TEXT,
-      processed_by TEXT,
+      refund_method TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (product_id) REFERENCES products(id),
       FOREIGN KEY (original_sale_id) REFERENCES sales(sale_id)
     );
 
     CREATE TABLE IF NOT EXISTS purchase_returns (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      return_id TEXT NOT NULL UNIQUE,
-      original_purchase_id INTEGER,
-      return_date TEXT NOT NULL,
-      return_time TEXT NOT NULL,
-      product_id INTEGER NOT NULL,
-      product_name TEXT NOT NULL,
-      quantity REAL NOT NULL,
-      unit TEXT NOT NULL,
-      rate_per_unit REAL NOT NULL,
-      credit_amount REAL NOT NULL,
+      original_purchase_id INTEGER NOT NULL,
+      return_quantity REAL NOT NULL,
+      refund_amount REAL NOT NULL,
       reason TEXT,
-      processed_by TEXT,
-      supplier_id INTEGER,
-      notes TEXT,
+      refund_method TEXT NOT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (product_id) REFERENCES products(id),
-      FOREIGN KEY (original_purchase_id) REFERENCES purchases(id),
-      FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
+      FOREIGN KEY (original_purchase_id) REFERENCES purchases(id)
     );
 
     CREATE TABLE IF NOT EXISTS supplier_credits (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       supplier_id INTEGER NOT NULL,
+      purchase_return_id INTEGER NOT NULL,
       credit_amount REAL NOT NULL,
-      used_amount REAL DEFAULT 0,
       remaining_amount REAL NOT NULL,
-      source_return_id TEXT,
-      notes TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
-      FOREIGN KEY (source_return_id) REFERENCES purchase_returns(return_id)
+      FOREIGN KEY (purchase_return_id) REFERENCES purchase_returns(id)
     );
   `);
 
@@ -250,80 +230,55 @@ async function initDatabase() {
       db.run(`UPDATE products SET product_name = 'Product ' || id WHERE product_name IS NULL OR product_name = ''`);
       console.log('Migration complete: Updated products with missing product names');
     }
-
-    // Add paid_amount and due_amount columns if they don't exist
-    try {
-      const purchasesInfo = db.exec("PRAGMA table_info(purchases)");
-      const columnNames = purchasesInfo[0]?.values.map(col => col[1]) || [];
-
-      if (!columnNames.includes('paid_amount')) {
-        console.log('Adding paid_amount column to purchases table...');
-        db.run(`ALTER TABLE purchases ADD COLUMN paid_amount REAL DEFAULT 0`);
-        console.log('Migration complete: Added paid_amount column');
-      }
-
-      if (!columnNames.includes('due_amount')) {
-        console.log('Adding due_amount column to purchases table...');
-        db.run(`ALTER TABLE purchases ADD COLUMN due_amount REAL DEFAULT 0`);
-        console.log('Migration complete: Added due_amount column');
-      }
-    } catch (migrationError) {
-      console.log('Column migration error:', migrationError.message);
-    }
-
-    // Migrate products table to make category_id, sub_category_id, brand_id optional
-    try {
-      console.log('Checking products table schema...');
-      const productsInfo = db.exec("PRAGMA table_info(products)");
-      if (productsInfo.length > 0) {
-        const columns = productsInfo[0].values;
-        const categoryIdCol = columns.find(col => col[1] === 'category_id');
-
-        // Check if category_id has NOT NULL constraint (notnull column is index 3)
-        if (categoryIdCol && categoryIdCol[3] === 1) {
-          console.log('Migrating products table to make optional fields nullable...');
-
-          // Step 1: Create new table with updated schema
-          db.run(`
-            CREATE TABLE IF NOT EXISTS products_new (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              product_name TEXT NOT NULL,
-              barcode_item TEXT UNIQUE,
-              barcode_box TEXT,
-              category_id INTEGER,
-              sub_category_id INTEGER,
-              brand_id INTEGER,
-              image_path TEXT,
-              created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-              FOREIGN KEY (category_id) REFERENCES categories(id),
-              FOREIGN KEY (sub_category_id) REFERENCES sub_categories(id),
-              FOREIGN KEY (brand_id) REFERENCES brands(id)
-            )
-          `);
-
-          // Step 2: Copy data from old table to new table
-          db.run(`
-            INSERT INTO products_new (id, product_name, barcode_item, barcode_box, category_id, sub_category_id, brand_id, image_path, created_at)
-            SELECT id, product_name, barcode_item, barcode_box, category_id, sub_category_id, brand_id, image_path, created_at
-            FROM products
-          `);
-
-          // Step 3: Drop old table
-          db.run(`DROP TABLE products`);
-
-          // Step 4: Rename new table to products
-          db.run(`ALTER TABLE products_new RENAME TO products`);
-
-          console.log('Migration complete: Products table updated successfully');
-        } else {
-          console.log('Products table already has correct schema');
-        }
-      }
-    } catch (migrationError) {
-      console.log('Products table migration error:', migrationError.message);
-    }
   } catch (error) {
     console.log('Migration error:', error.message);
+  }
+
+  // Database migrations for existing tables
+  try {
+    // Get current columns in purchases table
+    const tableInfo = db.exec("PRAGMA table_info(purchases)");
+    const existingColumns = tableInfo[0]?.values.map(col => col[1]) || [];
+
+    console.log('Existing columns in purchases table:', existingColumns);
+
+    // List of columns that should exist
+    const requiredColumns = [
+      { name: 'packaging_type', type: 'TEXT', default: null },
+      { name: 'num_cartons', type: 'REAL', default: 0 },
+      { name: 'boxes_per_carton', type: 'REAL', default: 0 },
+      { name: 'pieces_per_box', type: 'REAL', default: 0 },
+      { name: 'num_boxes', type: 'REAL', default: 0 },
+      { name: 'num_packs', type: 'REAL', default: 0 },
+      { name: 'pieces_per_pack', type: 'REAL', default: 0 },
+      { name: 'extra_amount', type: 'REAL', default: 0 }
+    ];
+
+    // Add missing columns
+    for (const col of requiredColumns) {
+      if (!existingColumns.includes(col.name)) {
+        const defaultValue = col.default === null ? 'NULL' : col.default;
+        console.log(`Adding ${col.name} column to purchases table...`);
+        db.run(`ALTER TABLE purchases ADD COLUMN ${col.name} ${col.type} DEFAULT ${defaultValue}`);
+        console.log(`${col.name} column added successfully`);
+      }
+    }
+  } catch (error) {
+    console.log('Migration error (may be safe to ignore):', error.message);
+  }
+
+  // Migrate NULL wholesale values in existing purchases
+  try {
+    console.log('Migrating NULL wholesale values...');
+    db.run(`
+      UPDATE purchases
+      SET wholesale_price = COALESCE(wholesale_price, 0),
+          min_wholesale_qty = COALESCE(min_wholesale_qty, 0)
+      WHERE wholesale_price IS NULL OR min_wholesale_qty IS NULL
+    `);
+    console.log('✅ Wholesale migration complete');
+  } catch (error) {
+    console.log('Wholesale migration error:', error.message);
   }
 
   // Save database to file
@@ -787,32 +742,32 @@ ipcMain.handle('add-purchase', async (event, purchaseData) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       purchaseData.productId,
-      purchaseData.itemBarcode,
-      purchaseData.boxBarcode || '',
-      purchaseData.categoryId,
-      purchaseData.subCategoryId,
-      purchaseData.brandId,
-      purchaseData.supplierId,
-      purchaseData.mfgDate || '',
-      purchaseData.expDate || '',
-      purchaseData.purchaseDate,
-      purchaseData.quantity,
-      purchaseData.unit,
-      purchaseData.purchasePrice,
-      purchaseData.salePrice,
-      purchaseData.minWholesaleQty || 0,
-      purchaseData.wholesalePrice || 0,
-      purchaseData.gst || 0,
-      purchaseData.totalAmount,
-      purchaseData.paidAmount || 0,
-      purchaseData.dueAmount || 0,
+      purchaseData.itemBarcode || null,
+      purchaseData.boxBarcode || null,
+      purchaseData.categoryId || null,
+      purchaseData.subCategoryId || null,
+      purchaseData.brandId || null,
+      purchaseData.supplierId || null,
+      purchaseData.mfgDate || null,
+      purchaseData.expDate || null,
+      purchaseData.purchaseDate || null,
+      purchaseData.quantity || null,
+      purchaseData.unit || null,
+      purchaseData.purchasePrice || null,
+      purchaseData.salePrice || null,
+      purchaseData.minWholesaleQty || null,
+      purchaseData.wholesalePrice || null,
+      purchaseData.gst || null,
+      purchaseData.totalAmount || null,
+      purchaseData.paidAmount || null,
+      purchaseData.dueAmount || null,
       purchaseData.packagingType || null,
-      purchaseData.numCartons || 0,
-      purchaseData.boxesPerCarton || 0,
-      purchaseData.piecesPerBox || 0,
-      purchaseData.numBoxes || 0,
-      purchaseData.numPacks || 0,
-      purchaseData.piecesPerPack || 0,
+      purchaseData.numCartons || null,
+      purchaseData.boxesPerCarton || null,
+      purchaseData.piecesPerBox || null,
+      purchaseData.numBoxes || null,
+      purchaseData.numPacks || null,
+      purchaseData.piecesPerPack || null,
       purchaseData.extraAmount || 0
     ]);
 
@@ -874,37 +829,36 @@ ipcMain.handle('update-purchase', async (event, purchaseData) => {
           sale_price = ?, min_wholesale_qty = ?, wholesale_price = ?, gst = ?,
           total_amount = ?, paid_amount = ?, due_amount = ?,
           packaging_type = ?, num_cartons = ?, boxes_per_carton = ?, pieces_per_box = ?,
-          num_boxes = ?, num_packs = ?, pieces_per_pack = ?, extra_amount = ?
+          num_boxes = ?, num_packs = ?, pieces_per_pack = ?
       WHERE id = ?
     `, [
       purchaseData.productId,
-      purchaseData.itemBarcode,
-      purchaseData.boxBarcode,
-      purchaseData.categoryId,
-      purchaseData.subCategoryId,
-      purchaseData.brandId,
-      purchaseData.supplierId,
-      purchaseData.mfgDate,
-      purchaseData.expDate,
-      purchaseData.purchaseDate,
-      purchaseData.quantity,
-      purchaseData.unit,
-      purchaseData.purchasePrice,
-      purchaseData.salePrice,
-      purchaseData.minWholesaleQty,
-      purchaseData.wholesalePrice,
-      purchaseData.gst,
-      purchaseData.totalAmount,
-      purchaseData.paidAmount || 0,
-      purchaseData.dueAmount || 0,
+      purchaseData.itemBarcode || null,
+      purchaseData.boxBarcode || null,
+      purchaseData.categoryId || null,
+      purchaseData.subCategoryId || null,
+      purchaseData.brandId || null,
+      purchaseData.supplierId || null,
+      purchaseData.mfgDate || null,
+      purchaseData.expDate || null,
+      purchaseData.purchaseDate || null,
+      purchaseData.quantity || null,
+      purchaseData.unit || null,
+      purchaseData.purchasePrice || null,
+      purchaseData.salePrice || null,
+      purchaseData.minWholesaleQty || null,
+      purchaseData.wholesalePrice || null,
+      purchaseData.gst || null,
+      purchaseData.totalAmount || null,
+      purchaseData.paidAmount || null,
+      purchaseData.dueAmount || null,
       purchaseData.packagingType || null,
-      purchaseData.numCartons || 0,
-      purchaseData.boxesPerCarton || 0,
-      purchaseData.piecesPerBox || 0,
-      purchaseData.numBoxes || 0,
-      purchaseData.numPacks || 0,
-      purchaseData.piecesPerPack || 0,
-      purchaseData.extraAmount || 0,
+      purchaseData.numCartons || null,
+      purchaseData.boxesPerCarton || null,
+      purchaseData.piecesPerBox || null,
+      purchaseData.numBoxes || null,
+      purchaseData.numPacks || null,
+      purchaseData.piecesPerPack || null,
       purchaseData.id
     ]);
     const dbPath = path.join(app.getPath('userData'), 'inventory.db');
@@ -939,6 +893,8 @@ ipcMain.handle('get-products-with-stock', async () => {
         MAX(pu.sale_price) as sale_price,
         MAX(pu.box) as box_price,
         MAX(pu.carton_qty) as items_per_box,
+        MAX(pu.wholesale_price) as wholesale_price,
+        MAX(pu.min_wholesale_qty) as min_wholesale_qty,
         SUM(pu.quantity) as available_stock
       FROM products p
       INNER JOIN purchases pu ON p.id = pu.product_id
@@ -947,6 +903,11 @@ ipcMain.handle('get-products-with-stock', async () => {
       ORDER BY p.product_name ASC
     `);
     const products = result.length > 0 ? resultToArray(result) : [];
+    console.log('📦 First Product Wholesale Data:', products.length > 0 ? {
+      name: products[0].product_name,
+      wholesale_price: products[0].wholesale_price,
+      min_wholesale_qty: products[0].min_wholesale_qty
+    } : 'No products');
     return { success: true, data: products };
   } catch (error) {
     return { success: false, error: error.message };
@@ -1114,13 +1075,8 @@ ipcMain.handle('get-sales', async () => {
       ORDER BY s.created_at DESC
     `);
     const sales = result.length > 0 ? resultToArray(result) : [];
-
-    // Debug: Log sales with returns
-    console.log('Sales query result:', sales.filter(s => s.total_returned > 0));
-
     return { success: true, data: sales };
   } catch (error) {
-    console.error('get-sales error:', error);
     return { success: false, error: error.message };
   }
 });
@@ -1144,11 +1100,11 @@ ipcMain.handle('get-sale-items', async (event, saleId) => {
 });
 
 // Sale Return IPC Handlers
-ipcMain.handle('search-sale-by-id', async (event, saleId) => {
+ipcMain.handle('get-sale-by-invoice', async (event, invoiceNumber) => {
   try {
     const saleResult = db.exec(`
       SELECT * FROM sales WHERE sale_id = ?
-    `, [saleId]);
+    `, [invoiceNumber]);
 
     if (saleResult.length === 0 || saleResult[0].values.length === 0) {
       return { success: false, error: 'Sale not found' };
@@ -1160,157 +1116,29 @@ ipcMain.handle('search-sale-by-id', async (event, saleId) => {
       SELECT
         si.*,
         p.product_name,
-        p.barcode_item
+        p.barcode_item,
+        si.quantity as original_quantity
       FROM sale_items si
       LEFT JOIN products p ON si.product_id = p.id
       WHERE si.sale_id = ?
-    `, [saleId]);
+    `, [invoiceNumber]);
 
     const items = itemsResult.length > 0 ? resultToArray(itemsResult) : [];
 
-    return {
-      success: true,
-      data: {
-        ...sale,
-        items
-      }
-    };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-});
-
-ipcMain.handle('add-sale-return', async (event, returnData) => {
-  try {
-    const year = new Date().getFullYear();
-    const countResult = db.exec('SELECT COUNT(*) as count FROM sale_returns');
-    const count = countResult[0].values[0][0] + 1;
-    const returnId = `RET-${year}-${String(count).padStart(6, '0')}`;
-
-    db.run(`
-      INSERT INTO sale_returns (
-        return_id, original_sale_id, return_date, return_time,
-        product_id, product_name, quantity, unit, rate_per_unit,
-        refund_amount, reason, processed_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      returnId,
-      returnData.original_sale_id || null,
-      returnData.return_date,
-      returnData.return_time,
-      returnData.product_id,
-      returnData.product_name,
-      returnData.quantity,
-      returnData.unit,
-      returnData.rate_per_unit,
-      returnData.refund_amount,
-      returnData.reason || '',
-      returnData.processed_by
-    ]);
-
-    // Add quantity back to stock
-    let quantityToAdd = returnData.quantity;
-
-    // Convert to base unit if needed
-    if (returnData.unit === 'g') {
-      quantityToAdd = returnData.quantity / 1000;
-    }
-
-    // Find the latest purchase of this product to add stock back
-    const purchaseResult = db.exec(`
-      SELECT id, quantity FROM purchases
-      WHERE product_id = ?
-      ORDER BY created_at DESC
-      LIMIT 1
-    `, [returnData.product_id]);
-
-    if (purchaseResult.length > 0 && purchaseResult[0].values.length > 0) {
-      const latestPurchase = resultToArray(purchaseResult)[0];
-      db.run(`
-        UPDATE purchases
-        SET quantity = quantity + ?
-        WHERE id = ?
-      `, [quantityToAdd, latestPurchase.id]);
-    }
-
-    const dbPath = path.join(app.getPath('userData'), 'inventory.db');
-    saveDatabase(dbPath);
-
-    return { success: true, return_id: returnId };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-});
-
-ipcMain.handle('get-sale-returns', async () => {
-  try {
-    const result = db.exec(`
+    const previousReturnsResult = db.exec(`
       SELECT * FROM sale_returns
-      ORDER BY created_at DESC
-    `);
-    const returns = result.length > 0 ? resultToArray(result) : [];
-    return { success: true, data: returns };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-});
-
-// New Sale Return System Handlers
-ipcMain.handle('get-sale-by-invoice', async (event, invoiceNumber) => {
-  try {
-    // Get the sale details
-    const saleResult = db.exec(`
-      SELECT * FROM sales WHERE sale_id = ?
-    `, [invoiceNumber]);
-
-    if (saleResult.length === 0 || saleResult[0].values.length === 0) {
-      return { success: false, error: 'Invoice not found' };
-    }
-
-    const sale = resultToArray(saleResult)[0];
-
-    // Get sale items
-    const itemsResult = db.exec(`
-      SELECT
-        si.id,
-        si.sale_id,
-        si.product_id,
-        si.quantity as original_quantity,
-        si.unit,
-        si.rate_per_unit,
-        si.line_total,
-        p.product_name
-      FROM sale_items si
-      LEFT JOIN products p ON si.product_id = p.id
-      WHERE si.sale_id = ?
-    `, [invoiceNumber]);
-
-    const items = itemsResult.length > 0 ? resultToArray(itemsResult) : [];
-
-    // Get previous returns for this sale
-    const returnsResult = db.exec(`
-      SELECT
-        return_id,
-        product_id,
-        quantity,
-        unit,
-        refund_amount,
-        return_date
-      FROM sale_returns
       WHERE original_sale_id = ?
-      ORDER BY created_at DESC
+      ORDER BY return_date DESC, return_time DESC
     `, [invoiceNumber]);
 
-    const previousReturns = returnsResult.length > 0 ? resultToArray(returnsResult) : [];
+    const previousReturns = previousReturnsResult.length > 0 ? resultToArray(previousReturnsResult) : [];
 
-    // Calculate remaining quantities for each item
     const itemsWithReturnInfo = items.map(item => {
-      // Sum up all returns for this product
       const totalReturned = previousReturns
-        .filter(ret => ret.product_id === item.product_id && ret.unit === item.unit)
+        .filter(ret => ret.product_id === item.product_id)
         .reduce((sum, ret) => sum + parseFloat(ret.quantity || 0), 0);
 
-      const remainingQuantity = item.original_quantity - totalReturned;
+      const remainingQuantity = parseFloat(item.original_quantity) - totalReturned;
 
       return {
         ...item,
@@ -1321,7 +1149,6 @@ ipcMain.handle('get-sale-by-invoice', async (event, invoiceNumber) => {
       };
     });
 
-    // Group returns by return_id for display
     const groupedReturns = previousReturns.reduce((acc, ret) => {
       if (!acc[ret.return_id]) {
         acc[ret.return_id] = {
@@ -1418,6 +1245,25 @@ ipcMain.handle('process-sale-return', async (event, returnData) => {
   }
 });
 
+ipcMain.handle('get-sale-returns', async () => {
+  try {
+    const result = db.exec(`
+      SELECT
+        return_id,
+        original_sale_id,
+        return_date,
+        SUM(refund_amount) as return_amount
+      FROM sale_returns
+      GROUP BY return_id, original_sale_id, return_date
+      ORDER BY return_date DESC, return_id DESC
+    `);
+    const returns = result.length > 0 ? resultToArray(result) : [];
+    return { success: true, data: returns };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+});
+
 ipcMain.handle('get-sale-return-items', async (event, returnId) => {
   try {
     const result = db.exec(`
@@ -1444,205 +1290,122 @@ ipcMain.handle('get-sale-return-items', async (event, returnId) => {
   }
 });
 
-// ==================== PURCHASE RETURN HANDLERS ====================
-
-// Get purchase by ID for return processing
+// IPC Handlers for Purchase Returns
 ipcMain.handle('get-purchase-by-id', async (event, purchaseId) => {
   try {
-    console.log('Getting purchase by ID:', purchaseId);
-
-    // Get purchase details
-    const purchaseResult = db.exec(`
+    const result = db.exec(`
       SELECT
-        p.*,
-        prod.product_name,
+        pu.id,
+        pu.product_id,
+        p.product_name,
+        pu.supplier_id,
         s.supplier_name,
-        c.category_name,
-        sc.sub_category_name,
-        b.brand_name
-      FROM purchases p
-      LEFT JOIN products prod ON p.product_id = prod.id
-      LEFT JOIN suppliers s ON p.supplier_id = s.id
-      LEFT JOIN categories c ON p.category_id = c.id
-      LEFT JOIN sub_categories sc ON p.sub_category_id = sc.id
-      LEFT JOIN brands b ON p.brand_id = b.id
-      WHERE p.id = ?
+        pu.quantity,
+        pu.unit,
+        pu.purchase_price,
+        pu.sale_price,
+        pu.box,
+        pu.carton_qty,
+        pu.wholesale_price,
+        pu.min_wholesale_qty,
+        pu.packaging_type,
+        pu.num_cartons,
+        pu.boxes_per_carton,
+        pu.pieces_per_box,
+        pu.num_boxes,
+        pu.num_packs,
+        pu.pieces_per_pack,
+        pu.extra_amount,
+        pu.created_at
+      FROM purchases pu
+      INNER JOIN products p ON pu.product_id = p.id
+      INNER JOIN suppliers s ON pu.supplier_id = s.id
+      WHERE pu.id = ?
     `, [purchaseId]);
 
-    if (purchaseResult.length === 0 || purchaseResult[0].values.length === 0) {
-      return { success: false, error: 'Purchase not found' };
-    }
-
-    const purchase = resultToArray(purchaseResult)[0];
-
-    // Get previous returns for this purchase
-    const returnsResult = db.exec(`
-      SELECT
-        return_id,
-        product_id,
-        product_name,
-        quantity,
-        unit,
-        credit_amount,
-        return_date,
-        reason
-      FROM purchase_returns
-      WHERE original_purchase_id = ?
-      ORDER BY created_at DESC
-    `, [purchaseId]);
-
-    const previousReturns = returnsResult.length > 0 ? resultToArray(returnsResult) : [];
-
-    // Calculate total returned quantity
-    const totalReturned = previousReturns.reduce((sum, ret) => sum + (ret.quantity || 0), 0);
-    const remainingQuantity = (purchase.quantity || 0) - totalReturned;
-    const canReturn = remainingQuantity > 0;
-
-    // Format purchase as item for consistency with frontend
-    const item = {
-      purchase_id: purchase.id,
-      product_id: purchase.product_id,
-      product_name: purchase.product_name,
-      quantity: purchase.quantity,
-      unit: purchase.unit,
-      rate_per_unit: purchase.purchase_price,
-      total_returned: totalReturned,
-      remaining_quantity: remainingQuantity,
-      can_return: canReturn,
-      supplier_id: purchase.supplier_id,
-      supplier_name: purchase.supplier_name,
-      purchase_date: purchase.purchase_date
-    };
-
-    return {
-      success: true,
-      data: {
-        purchase: purchase,
-        item: item,
-        previousReturns: previousReturns
-      }
-    };
+    const purchase = result.length > 0 ? resultToArray(result)[0] : null;
+    return { success: true, data: purchase };
   } catch (error) {
     console.error('get-purchase-by-id error:', error);
     return { success: false, error: error.message };
   }
 });
 
-// Process purchase return
-ipcMain.handle('process-purchase-return', async (event, returnData) => {
+ipcMain.handle('process-purchase-return', async (event, data) => {
   try {
-    console.log('Processing purchase return:', returnData);
+    const {
+      purchase_id,
+      return_quantity,
+      return_amount,
+      reason,
+      refund_method,
+      supplier_id
+    } = data;
 
-    // Generate return ID
-    const countResult = db.exec(`
-      SELECT COUNT(DISTINCT return_id) as count FROM purchase_returns
-    `);
-    const count = countResult.length > 0 ? resultToArray(countResult)[0].count : 0;
-    const year = new Date().getFullYear();
-    const returnId = `PRET-${year}-${String(count + 1).padStart(6, '0')}`;
-
-    console.log('Generated return ID:', returnId);
-
-    // Insert return records for each item
-    for (const item of returnData.items) {
-      db.run(`
-        INSERT INTO purchase_returns (
-          return_id,
-          original_purchase_id,
-          return_date,
-          return_time,
-          product_id,
-          product_name,
-          quantity,
-          unit,
-          rate_per_unit,
-          credit_amount,
-          reason,
-          processed_by,
-          supplier_id,
-          notes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [
-        returnId,
-        returnData.original_purchase_id,
-        returnData.return_date,
-        returnData.return_time,
-        item.product_id,
-        item.product_name,
-        item.quantity,
-        item.unit,
-        item.rate_per_unit,
-        item.line_total,
-        returnData.reason || '',
-        returnData.returned_by,
-        returnData.supplier_id,
-        returnData.notes || ''
-      ]);
-
-      // REDUCE quantity from stock (opposite of sale returns)
-      let quantityToReduce = item.quantity;
-
-      // Convert to base unit if needed (grams to kg)
-      if (item.unit === 'g') {
-        quantityToReduce = item.quantity / 1000;
-      }
-
-      // Find the purchase record and reduce its quantity
-      db.run(`
-        UPDATE purchases
-        SET quantity = quantity - ?
-        WHERE id = ?
-      `, [quantityToReduce, returnData.original_purchase_id]);
-    }
-
-    // Create supplier credit record
-    const totalCreditAmount = returnData.total_credit_amount;
+    // Insert purchase return record
     db.run(`
-      INSERT INTO supplier_credits (
-        supplier_id,
-        credit_amount,
-        used_amount,
-        remaining_amount,
-        source_return_id,
-        notes
-      ) VALUES (?, ?, ?, ?, ?, ?)
-    `, [
-      returnData.supplier_id,
-      totalCreditAmount,
-      0,
-      totalCreditAmount,
-      returnId,
-      returnData.notes || 'Credit from purchase return'
-    ]);
+      INSERT INTO purchase_returns (
+        original_purchase_id,
+        return_quantity,
+        refund_amount,
+        reason,
+        refund_method,
+        created_at
+      ) VALUES (?, ?, ?, ?, ?, datetime('now'))
+    `, [purchase_id, return_quantity, return_amount, reason, refund_method]);
+
+    // Get the return ID
+    const returnResult = db.exec('SELECT last_insert_rowid() as id');
+    const returnId = returnResult[0].values[0][0];
+
+    // Update purchase quantity (reduce stock)
+    db.run(`
+      UPDATE purchases
+      SET quantity = quantity - ?
+      WHERE id = ?
+    `, [return_quantity, purchase_id]);
+
+    // Add supplier credit if applicable
+    if (refund_method === 'credit') {
+      db.run(`
+        INSERT INTO supplier_credits (
+          supplier_id,
+          purchase_return_id,
+          credit_amount,
+          remaining_amount,
+          created_at
+        ) VALUES (?, ?, ?, ?, datetime('now'))
+      `, [supplier_id, returnId, return_amount, return_amount]);
+    }
 
     const dbPath = path.join(app.getPath('userData'), 'inventory.db');
     saveDatabase(dbPath);
 
-    return { success: true, return_id: returnId };
+    return { success: true, returnId };
   } catch (error) {
     console.error('process-purchase-return error:', error);
     return { success: false, error: error.message };
   }
 });
 
-// Get all purchase returns
-ipcMain.handle('get-purchase-returns', async (event) => {
+ipcMain.handle('get-purchase-returns', async () => {
   try {
     const result = db.exec(`
       SELECT
-        pr.return_id,
+        pr.id,
         pr.original_purchase_id,
-        pr.return_date,
-        pr.return_time,
-        SUM(pr.credit_amount) as total_credit_amount,
+        pr.return_quantity,
+        pr.refund_amount,
+        pr.reason,
+        pr.refund_method,
+        pr.created_at,
+        p.product_name,
         s.supplier_name,
-        pr.supplier_id,
-        pr.processed_by,
-        pr.created_at
+        pu.unit
       FROM purchase_returns pr
-      LEFT JOIN suppliers s ON pr.supplier_id = s.id
-      GROUP BY pr.return_id, pr.original_purchase_id, pr.return_date, pr.return_time,
-               s.supplier_name, pr.supplier_id, pr.processed_by, pr.created_at
+      INNER JOIN purchases pu ON pr.original_purchase_id = pu.id
+      INNER JOIN products p ON pu.product_id = p.id
+      INNER JOIN suppliers s ON pu.supplier_id = s.id
       ORDER BY pr.created_at DESC
     `);
 
@@ -1654,24 +1417,24 @@ ipcMain.handle('get-purchase-returns', async (event) => {
   }
 });
 
-// Get purchase return items by return ID
 ipcMain.handle('get-purchase-return-items', async (event, returnId) => {
   try {
     const result = db.exec(`
       SELECT
         pr.id,
-        pr.return_id,
-        pr.product_id,
-        pr.product_name,
-        pr.quantity,
-        pr.unit,
-        pr.rate_per_unit,
-        pr.credit_amount,
+        pr.original_purchase_id,
+        pr.return_quantity,
+        pr.refund_amount,
         pr.reason,
-        pr.notes
+        pr.refund_method,
+        pr.created_at,
+        p.product_name,
+        pu.unit,
+        pu.purchase_price
       FROM purchase_returns pr
-      WHERE pr.return_id = ?
-      ORDER BY pr.id ASC
+      INNER JOIN purchases pu ON pr.original_purchase_id = pu.id
+      INNER JOIN products p ON pu.product_id = p.id
+      WHERE pr.id = ?
     `, [returnId]);
 
     const items = result.length > 0 ? resultToArray(result) : [];
@@ -1682,26 +1445,24 @@ ipcMain.handle('get-purchase-return-items', async (event, returnId) => {
   }
 });
 
-// Get supplier credits
 ipcMain.handle('get-supplier-credits', async (event, supplierId) => {
   try {
-    let query = `
+    const result = db.exec(`
       SELECT
-        sc.*,
-        s.supplier_name
+        sc.id,
+        sc.credit_amount,
+        sc.remaining_amount,
+        sc.created_at,
+        pr.return_quantity,
+        p.product_name
       FROM supplier_credits sc
-      LEFT JOIN suppliers s ON sc.supplier_id = s.id
-    `;
+      INNER JOIN purchase_returns pr ON sc.purchase_return_id = pr.id
+      INNER JOIN purchases pu ON pr.original_purchase_id = pu.id
+      INNER JOIN products p ON pu.product_id = p.id
+      WHERE sc.supplier_id = ? AND sc.remaining_amount > 0
+      ORDER BY sc.created_at DESC
+    `, [supplierId]);
 
-    const params = [];
-    if (supplierId) {
-      query += ' WHERE sc.supplier_id = ?';
-      params.push(supplierId);
-    }
-
-    query += ' ORDER BY sc.created_at DESC';
-
-    const result = db.exec(query, params);
     const credits = result.length > 0 ? resultToArray(result) : [];
     return { success: true, data: credits };
   } catch (error) {
@@ -1710,49 +1471,28 @@ ipcMain.handle('get-supplier-credits', async (event, supplierId) => {
   }
 });
 
-// Get all purchased items with returned quantities calculated (for purchase returns)
-ipcMain.handle('get-all-purchased-items', async (event) => {
+ipcMain.handle('get-all-purchased-items', async () => {
   try {
     const result = db.exec(`
       SELECT
-        p.id as purchase_id,
-        p.id as item_id,
-        p.product_id,
+        pu.id,
+        pu.product_id,
         p.product_name,
-        p.item_barcode as sku,
-        p.quantity,
-        p.unit,
-        p.purchase_price as rate_per_unit,
-        p.supplier_id,
+        pu.supplier_id,
         s.supplier_name,
-        c.category_name,
-        p.purchase_date,
-        p.mfg_date,
-        p.exp_date,
-        COALESCE(
-          (SELECT SUM(pr.quantity)
-           FROM purchase_returns pr
-           WHERE pr.product_id = p.product_id
-           AND pr.original_purchase_id = p.id),
-          0
-        ) as total_returned
-      FROM purchases p
-      LEFT JOIN suppliers s ON p.supplier_id = s.id
-      LEFT JOIN categories c ON p.category_id = c.id
-      WHERE p.quantity > 0
-      ORDER BY p.purchase_date DESC, p.product_name ASC
+        pu.quantity,
+        pu.unit,
+        pu.purchase_price,
+        pu.sale_price,
+        pu.created_at
+      FROM purchases pu
+      INNER JOIN products p ON pu.product_id = p.id
+      INNER JOIN suppliers s ON pu.supplier_id = s.id
+      WHERE pu.quantity > 0
+      ORDER BY pu.created_at DESC
     `);
 
-    const purchases = result.length > 0 ? resultToArray(result) : [];
-
-    // Calculate remaining_quantity and filter in JavaScript
-    const items = purchases
-      .map(p => ({
-        ...p,
-        remaining_quantity: (p.quantity || 0) - (p.total_returned || 0)
-      }))
-      .filter(p => p.remaining_quantity > 0);
-
+    const items = result.length > 0 ? resultToArray(result) : [];
     return { success: true, data: items };
   } catch (error) {
     console.error('get-all-purchased-items error:', error);

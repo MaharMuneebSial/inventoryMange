@@ -506,13 +506,44 @@ export default function Sale() {
       return;
     }
 
-    // Calculate rate per unit based on base unit
+    // Calculate rate per unit based on base unit and wholesale pricing
     let ratePerUnit = selectedProduct.sale_price;
+    let isWholesale = false;
 
-    if (unitValue === 'g' && selectedProduct.base_unit === 'kg') {
-      ratePerUnit = selectedProduct.sale_price / 1000;
-    } else if (unitValue === 'box' && selectedProduct.box_price) {
-      ratePerUnit = selectedProduct.box_price;
+    // Check if wholesale pricing applies
+    console.log('🔍 Product:', selectedProduct.product_name);
+    console.log('📊 Wholesale Price:', selectedProduct.wholesale_price);
+    console.log('📊 Min Wholesale Qty:', selectedProduct.min_wholesale_qty);
+    console.log('📦 Current Qty:', qtyValue);
+
+    if (selectedProduct.wholesale_price && selectedProduct.min_wholesale_qty) {
+      if (qtyValue >= selectedProduct.min_wholesale_qty) {
+        ratePerUnit = selectedProduct.wholesale_price;
+        isWholesale = true;
+        console.log('✅ WHOLESALE PRICE APPLIED!');
+      } else {
+        console.log('❌ Quantity not enough for wholesale. Need:', selectedProduct.min_wholesale_qty);
+      }
+    } else {
+      console.log('⚠️ No wholesale pricing set for this product');
+    }
+
+    // Adjust rate for different units if not wholesale
+    if (!isWholesale) {
+      if (unitValue === 'g' && selectedProduct.base_unit === 'kg') {
+        ratePerUnit = selectedProduct.sale_price / 1000;
+      } else if (unitValue === 'box' && selectedProduct.box_price) {
+        ratePerUnit = selectedProduct.box_price;
+      }
+    } else {
+      // For wholesale, adjust rate based on unit
+      if (unitValue === 'g' && selectedProduct.base_unit === 'kg') {
+        ratePerUnit = selectedProduct.wholesale_price / 1000;
+      } else if (unitValue === 'box' && selectedProduct.box_price) {
+        // For box, use wholesale price ratio
+        const wholesaleRatio = selectedProduct.wholesale_price / selectedProduct.sale_price;
+        ratePerUnit = selectedProduct.box_price * wholesaleRatio;
+      }
     }
 
     const lineTotal = qtyValue * ratePerUnit;
@@ -527,6 +558,7 @@ export default function Sale() {
       const newCart = [...cart];
       newCart[existingItemIndex].quantity += qtyValue;
       newCart[existingItemIndex].line_total = newCart[existingItemIndex].quantity * ratePerUnit;
+      newCart[existingItemIndex].is_wholesale = isWholesale;
       setCart(newCart);
     } else {
       // Add new item
@@ -539,7 +571,8 @@ export default function Sale() {
         rate_per_unit: ratePerUnit,
         line_total: lineTotal,
         available_stock: selectedProduct.available_stock,
-        base_unit: selectedProduct.base_unit
+        base_unit: selectedProduct.base_unit,
+        is_wholesale: isWholesale
       };
       setCart([...cart, cartItem]);
     }
@@ -585,9 +618,40 @@ export default function Sale() {
       return;
     }
 
+    // Find the product to get wholesale pricing info
+    const product = products.find(p => p.id === item.product_id);
+    let ratePerUnit = item.rate_per_unit;
+    let isWholesale = false;
+
+    if (product && product.wholesale_price && product.min_wholesale_qty) {
+      // Check if new quantity qualifies for wholesale
+      if (qtyValue >= product.min_wholesale_qty) {
+        isWholesale = true;
+        ratePerUnit = product.wholesale_price;
+
+        // Adjust for different units
+        if (item.unit === 'g' && product.base_unit === 'kg') {
+          ratePerUnit = product.wholesale_price / 1000;
+        } else if (item.unit === 'box' && product.box_price) {
+          const wholesaleRatio = product.wholesale_price / product.sale_price;
+          ratePerUnit = product.box_price * wholesaleRatio;
+        }
+      } else {
+        // Use retail price
+        ratePerUnit = product.sale_price;
+        if (item.unit === 'g' && product.base_unit === 'kg') {
+          ratePerUnit = product.sale_price / 1000;
+        } else if (item.unit === 'box' && product.box_price) {
+          ratePerUnit = product.box_price;
+        }
+      }
+    }
+
     const newCart = [...cart];
     newCart[index].quantity = qtyValue;
-    newCart[index].line_total = qtyValue * item.rate_per_unit;
+    newCart[index].rate_per_unit = ratePerUnit;
+    newCart[index].is_wholesale = isWholesale;
+    newCart[index].line_total = qtyValue * ratePerUnit;
     setCart(newCart);
   };
 
@@ -990,7 +1054,16 @@ export default function Sale() {
                   ) : (
                     cart.map((item, index) => (
                       <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-2 py-1.5 text-xs text-gray-900">{item.product_name}</td>
+                        <td className="px-2 py-1.5 text-xs text-gray-900">
+                          <div className="flex items-center gap-1">
+                            {item.product_name}
+                            {item.is_wholesale && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                Wholesale
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-2 py-1.5">
                           <input
                             type="number"

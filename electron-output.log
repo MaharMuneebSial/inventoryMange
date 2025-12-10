@@ -1,0 +1,44 @@
+
+> my-app@0.1.0 electron
+> concurrently "cross-env BROWSER=none npm run dev" "wait-on http://localhost:3000 && electron ."
+
+[0] 
+[0] > my-app@0.1.0 dev
+[0] > next dev
+[0] 
+[1] c:\Users\Muneeb Sial\OneDrive\Desktop\inshallah final\my-app\electron\main.js:284
+[1] app.whenReady().then(async () => {
+[1]     ^
+[1] 
+[1] TypeError: Cannot read properties of undefined (reading 'whenReady')
+[1]     at Object.<anonymous> (c:\Users\Muneeb Sial\OneDrive\Desktop\inshallah final\my-app\electron\main.js:284:5)
+[1]     at Module._compile (node:internal/modules/cjs/loader:1714:14)
+[1]     at Module._extensions..js (node:internal/modules/cjs/loader:1848:10)
+[1]     at Module.load (node:internal/modules/cjs/loader:1448:32)
+[1]     at Module._load (node:internal/modules/cjs/loader:1270:12)
+[1]     at c._load (node:electron/js2c/node_init:2:17993)
+[1]     at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+[1]     at wrapModuleLoad (node:internal/modules/cjs/loader:244:24)
+[1]     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:186:5)
+[1]     at node:internal/main/run_main_module:36:49
+[1] 
+[1] Node.js v22.21.1
+[1] wait-on http://localhost:3000 && electron . exited with code 1
+[0]  ⚠ Port 3000 is in use by process 1860, using available port 3001 instead.
+[0]  ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+[0]  We detected multiple lockfiles and selected the directory of c:\Users\Muneeb Sial\package-lock.json as the root directory.
+[0]  To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+[0]    See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+[0]  Detected additional lockfiles: 
+[0]    * c:\Users\Muneeb Sial\OneDrive\Desktop\inshallah final\my-app\package-lock.json
+[0] 
+[0]    ▲ Next.js 16.0.6 (Turbopack)
+[0]    - Local:         http://localhost:3001
+[0]    - Network:       http://192.168.12.95:3001
+[0]    - Environments: .env.local
+[0] 
+[0]  ✓ Starting...
+[0]  ⨯ Unable to acquire lock at c:\Users\Muneeb Sial\OneDrive\Desktop\inshallah final\my-app\.next\dev\lock, is another instance of next dev running?
+[0]    Suggestion: If you intended to restart next dev, terminate the other process, and then try again.
+[0] [?25h
+[0] cross-env BROWSER=none npm run dev exited with code 1
