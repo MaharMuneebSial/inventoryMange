@@ -186,29 +186,9 @@ async function initDatabase() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (original_sale_id) REFERENCES sales(sale_id)
     );
-
-    CREATE TABLE IF NOT EXISTS purchase_returns (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      original_purchase_id INTEGER NOT NULL,
-      return_quantity REAL NOT NULL,
-      refund_amount REAL NOT NULL,
-      reason TEXT,
-      refund_method TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (original_purchase_id) REFERENCES purchases(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS supplier_credits (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      supplier_id INTEGER NOT NULL,
-      purchase_return_id INTEGER NOT NULL,
-      credit_amount REAL NOT NULL,
-      remaining_amount REAL NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
-      FOREIGN KEY (purchase_return_id) REFERENCES purchase_returns(id)
-    );
   `);
+
+  // Note: purchase_returns and supplier_credits tables are created later in migration section
 
   // Run migration to add product_name column if it doesn't exist
   try {
@@ -265,6 +245,44 @@ async function initDatabase() {
     }
   } catch (error) {
     console.log('Migration error (may be safe to ignore):', error.message);
+  }
+
+  // Create purchase_returns and supplier_credits tables if not exist
+  try {
+    console.log('Checking purchase_returns and supplier_credits tables...');
+
+    // Create purchase_returns table if not exists
+    db.run(`
+      CREATE TABLE IF NOT EXISTS purchase_returns (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        original_purchase_id INTEGER NOT NULL,
+        return_quantity REAL NOT NULL,
+        refund_amount REAL NOT NULL,
+        reason TEXT,
+        refund_method TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (original_purchase_id) REFERENCES purchases(id)
+      )
+    `);
+    console.log('✅ purchase_returns table ready');
+
+    // Create supplier_credits table if not exists
+    db.run(`
+      CREATE TABLE IF NOT EXISTS supplier_credits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        supplier_id INTEGER NOT NULL,
+        purchase_return_id INTEGER NOT NULL,
+        credit_amount REAL NOT NULL,
+        remaining_amount REAL NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
+        FOREIGN KEY (purchase_return_id) REFERENCES purchase_returns(id)
+      )
+    `);
+    console.log('✅ supplier_credits table ready');
+
+  } catch (error) {
+    console.log('Table creation error:', error.message);
   }
 
   // Migrate NULL wholesale values in existing purchases
@@ -742,32 +760,32 @@ ipcMain.handle('add-purchase', async (event, purchaseData) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       purchaseData.productId,
-      purchaseData.itemBarcode || null,
-      purchaseData.boxBarcode || null,
-      purchaseData.categoryId || null,
-      purchaseData.subCategoryId || null,
-      purchaseData.brandId || null,
-      purchaseData.supplierId || null,
-      purchaseData.mfgDate || null,
-      purchaseData.expDate || null,
-      purchaseData.purchaseDate || null,
-      purchaseData.quantity || null,
-      purchaseData.unit || null,
-      purchaseData.purchasePrice || null,
-      purchaseData.salePrice || null,
-      purchaseData.minWholesaleQty || null,
-      purchaseData.wholesalePrice || null,
-      purchaseData.gst || null,
-      purchaseData.totalAmount || null,
-      purchaseData.paidAmount || null,
-      purchaseData.dueAmount || null,
-      purchaseData.packagingType || null,
-      purchaseData.numCartons || null,
-      purchaseData.boxesPerCarton || null,
-      purchaseData.piecesPerBox || null,
-      purchaseData.numBoxes || null,
-      purchaseData.numPacks || null,
-      purchaseData.piecesPerPack || null,
+      purchaseData.itemBarcode || '',
+      purchaseData.boxBarcode || '',
+      purchaseData.categoryId || 0,
+      purchaseData.subCategoryId || 0,
+      purchaseData.brandId || 0,
+      purchaseData.supplierId || 0,
+      purchaseData.mfgDate || '',
+      purchaseData.expDate || '',
+      purchaseData.purchaseDate || '',
+      purchaseData.quantity || 0,
+      purchaseData.unit || '',
+      purchaseData.purchasePrice || 0,
+      purchaseData.salePrice || 0,
+      purchaseData.minWholesaleQty || 0,
+      purchaseData.wholesalePrice || 0,
+      purchaseData.gst || 0,
+      purchaseData.totalAmount || 0,
+      purchaseData.paidAmount || 0,
+      purchaseData.dueAmount || 0,
+      purchaseData.packagingType || '',
+      purchaseData.numCartons || 0,
+      purchaseData.boxesPerCarton || 0,
+      purchaseData.piecesPerBox || 0,
+      purchaseData.numBoxes || 0,
+      purchaseData.numPacks || 0,
+      purchaseData.piecesPerPack || 0,
       purchaseData.extraAmount || 0
     ]);
 
@@ -833,32 +851,32 @@ ipcMain.handle('update-purchase', async (event, purchaseData) => {
       WHERE id = ?
     `, [
       purchaseData.productId,
-      purchaseData.itemBarcode || null,
-      purchaseData.boxBarcode || null,
-      purchaseData.categoryId || null,
-      purchaseData.subCategoryId || null,
-      purchaseData.brandId || null,
-      purchaseData.supplierId || null,
-      purchaseData.mfgDate || null,
-      purchaseData.expDate || null,
-      purchaseData.purchaseDate || null,
-      purchaseData.quantity || null,
-      purchaseData.unit || null,
-      purchaseData.purchasePrice || null,
-      purchaseData.salePrice || null,
-      purchaseData.minWholesaleQty || null,
-      purchaseData.wholesalePrice || null,
-      purchaseData.gst || null,
-      purchaseData.totalAmount || null,
-      purchaseData.paidAmount || null,
-      purchaseData.dueAmount || null,
-      purchaseData.packagingType || null,
-      purchaseData.numCartons || null,
-      purchaseData.boxesPerCarton || null,
-      purchaseData.piecesPerBox || null,
-      purchaseData.numBoxes || null,
-      purchaseData.numPacks || null,
-      purchaseData.piecesPerPack || null,
+      purchaseData.itemBarcode || '',
+      purchaseData.boxBarcode || '',
+      purchaseData.categoryId || 0,
+      purchaseData.subCategoryId || 0,
+      purchaseData.brandId || 0,
+      purchaseData.supplierId || 0,
+      purchaseData.mfgDate || '',
+      purchaseData.expDate || '',
+      purchaseData.purchaseDate || '',
+      purchaseData.quantity || 0,
+      purchaseData.unit || '',
+      purchaseData.purchasePrice || 0,
+      purchaseData.salePrice || 0,
+      purchaseData.minWholesaleQty || 0,
+      purchaseData.wholesalePrice || 0,
+      purchaseData.gst || 0,
+      purchaseData.totalAmount || 0,
+      purchaseData.paidAmount || 0,
+      purchaseData.dueAmount || 0,
+      purchaseData.packagingType || '',
+      purchaseData.numCartons || 0,
+      purchaseData.boxesPerCarton || 0,
+      purchaseData.piecesPerBox || 0,
+      purchaseData.numBoxes || 0,
+      purchaseData.numPacks || 0,
+      purchaseData.piecesPerPack || 0,
       purchaseData.id
     ]);
     const dbPath = path.join(app.getPath('userData'), 'inventory.db');
@@ -895,6 +913,9 @@ ipcMain.handle('get-products-with-stock', async () => {
         MAX(pu.carton_qty) as items_per_box,
         MAX(pu.wholesale_price) as wholesale_price,
         MAX(pu.min_wholesale_qty) as min_wholesale_qty,
+        MAX(pu.pieces_per_box) as pieces_per_box,
+        MAX(pu.boxes_per_carton) as boxes_per_carton,
+        MAX(pu.pieces_per_pack) as pieces_per_pack,
         SUM(pu.quantity) as available_stock
       FROM products p
       INNER JOIN purchases pu ON p.id = pu.product_id

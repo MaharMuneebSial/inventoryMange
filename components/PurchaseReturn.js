@@ -160,24 +160,12 @@ export default function PurchaseReturn() {
         const totalCreditAmount = calculateTotalCredit();
 
         const returnData = {
-          original_purchase_id: selectedItem.purchase_id,
-          return_date: new Date().toISOString().split('T')[0],
-          return_time: new Date().toLocaleTimeString('en-US', { hour12: false }),
-          total_credit_amount: totalCreditAmount,
-          returned_by: returnedBy,
-          supplier_id: selectedItem.supplier_id,
-          reason,
-          notes,
-          items: [
-            {
-              product_id: selectedItem.product_id,
-              product_name: selectedItem.product_name,
-              quantity: qty,
-              unit: selectedItem.unit,
-              rate_per_unit: parseFloat(returnRate) || 0,
-              line_total: totalCreditAmount
-            }
-          ]
+          purchase_id: selectedItem.purchase_id,
+          return_quantity: qty,
+          return_amount: totalCreditAmount,
+          reason: reason || 'No reason provided',
+          refund_method: 'credit',
+          supplier_id: selectedItem.supplier_id
         };
 
         const result = await window.electronAPI.processPurchaseReturn(returnData);

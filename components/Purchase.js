@@ -544,6 +544,8 @@ export default function Purchase() {
     const total = calculateTotalPieces();
     if (total > 0 && !isNaN(total) && total !== null) {
       setQuantity(total.toString());
+      setUnit('pcs');
+   setUnitSearch('pcs');
       setShowPackagingModal(false);
     }
   };

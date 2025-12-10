@@ -499,6 +499,15 @@ export default function Sale() {
       requiredStock = qtyValue / 1000;
     } else if (unitValue === 'box' && selectedProduct.items_per_box) {
       requiredStock = qtyValue * selectedProduct.items_per_box;
+    } else if ((unitValue === 'bag' || unitValue === 'packet') && selectedProduct.base_unit === 'pcs') {
+      // Bag for pcs items - use pieces_per_pack
+      const piecesPerPack = selectedProduct.pieces_per_pack || selectedProduct.items_per_box || 1;
+      requiredStock = qtyValue * piecesPerPack;
+    } else if (unitValue === 'carton' && selectedProduct.base_unit === 'pcs') {
+      // Carton for pcs items - boxes_per_carton × pieces_per_box
+      const boxesPerCarton = selectedProduct.boxes_per_carton || 1;
+      const piecesPerBox = selectedProduct.pieces_per_box || selectedProduct.items_per_box || 1;
+      requiredStock = qtyValue * boxesPerCarton * piecesPerBox;
     }
 
     if (selectedProduct.available_stock < requiredStock) {
@@ -528,22 +537,27 @@ export default function Sale() {
       console.log('⚠️ No wholesale pricing set for this product');
     }
 
-    // Adjust rate for different units if not wholesale
-    if (!isWholesale) {
-      if (unitValue === 'g' && selectedProduct.base_unit === 'kg') {
-        ratePerUnit = selectedProduct.sale_price / 1000;
-      } else if (unitValue === 'box' && selectedProduct.box_price) {
-        ratePerUnit = selectedProduct.box_price;
-      }
-    } else {
-      // For wholesale, adjust rate based on unit
-      if (unitValue === 'g' && selectedProduct.base_unit === 'kg') {
-        ratePerUnit = selectedProduct.wholesale_price / 1000;
-      } else if (unitValue === 'box' && selectedProduct.box_price) {
-        // For box, use wholesale price ratio
-        const wholesaleRatio = selectedProduct.wholesale_price / selectedProduct.sale_price;
-        ratePerUnit = selectedProduct.box_price * wholesaleRatio;
-      }
+    // Adjust rate for different units
+    if (unitValue === 'g' && selectedProduct.base_unit === 'kg') {
+      ratePerUnit = isWholesale
+        ? selectedProduct.wholesale_price / 1000
+        : selectedProduct.sale_price / 1000;
+    } else if (unitValue === 'box') {
+      // Box: Calculate based on pieces_per_box
+      const piecesPerBox = selectedProduct.pieces_per_box || selectedProduct.items_per_box || 1;
+      const pricePerPiece = isWholesale ? selectedProduct.wholesale_price : selectedProduct.sale_price;
+      ratePerUnit = pricePerPiece * piecesPerBox;
+    } else if (unitValue === 'bag' || unitValue === 'packet') {
+      // Bag/Packet: Calculate based on pieces_per_pack
+      const piecesPerPack = selectedProduct.pieces_per_pack || selectedProduct.items_per_box || 1;
+      const pricePerPiece = isWholesale ? selectedProduct.wholesale_price : selectedProduct.sale_price;
+      ratePerUnit = pricePerPiece * piecesPerPack;
+    } else if (unitValue === 'carton') {
+      // Carton: Calculate based on boxes_per_carton × pieces_per_box
+      const boxesPerCarton = selectedProduct.boxes_per_carton || 1;
+      const piecesPerBox = selectedProduct.pieces_per_box || selectedProduct.items_per_box || 1;
+      const pricePerPiece = isWholesale ? selectedProduct.wholesale_price : selectedProduct.sale_price;
+      ratePerUnit = pricePerPiece * boxesPerCarton * piecesPerBox;
     }
 
     const lineTotal = qtyValue * ratePerUnit;
@@ -611,6 +625,15 @@ export default function Sale() {
       requiredStock = qtyValue / 1000;
     } else if (item.unit === 'box') {
       requiredStock = qtyValue * (item.items_per_box || 1);
+    } else if ((item.unit === 'bag' || item.unit === 'packet') && item.base_unit === 'pcs') {
+      const product = products.find(p => p.id === item.product_id);
+      const piecesPerPack = product?.pieces_per_pack || product?.items_per_box || 1;
+      requiredStock = qtyValue * piecesPerPack;
+    } else if (item.unit === 'carton' && item.base_unit === 'pcs') {
+      const product = products.find(p => p.id === item.product_id);
+      const boxesPerCarton = product?.boxes_per_carton || 1;
+      const piecesPerBox = product?.pieces_per_box || product?.items_per_box || 1;
+      requiredStock = qtyValue * boxesPerCarton * piecesPerBox;
     }
 
     if (item.available_stock < requiredStock) {
@@ -627,23 +650,27 @@ export default function Sale() {
       // Check if new quantity qualifies for wholesale
       if (qtyValue >= product.min_wholesale_qty) {
         isWholesale = true;
-        ratePerUnit = product.wholesale_price;
+      }
+    }
 
-        // Adjust for different units
-        if (item.unit === 'g' && product.base_unit === 'kg') {
-          ratePerUnit = product.wholesale_price / 1000;
-        } else if (item.unit === 'box' && product.box_price) {
-          const wholesaleRatio = product.wholesale_price / product.sale_price;
-          ratePerUnit = product.box_price * wholesaleRatio;
-        }
+    // Calculate rate based on unit and wholesale status
+    if (product) {
+      const pricePerPiece = isWholesale ? product.wholesale_price : product.sale_price;
+
+      if (item.unit === 'g' && product.base_unit === 'kg') {
+        ratePerUnit = pricePerPiece / 1000;
+      } else if (item.unit === 'box') {
+        const piecesPerBox = product.pieces_per_box || product.items_per_box || 1;
+        ratePerUnit = pricePerPiece * piecesPerBox;
+      } else if (item.unit === 'bag' || item.unit === 'packet') {
+        const piecesPerPack = product.pieces_per_pack || product.items_per_box || 1;
+        ratePerUnit = pricePerPiece * piecesPerPack;
+      } else if (item.unit === 'carton') {
+        const boxesPerCarton = product.boxes_per_carton || 1;
+        const piecesPerBox = product.pieces_per_box || product.items_per_box || 1;
+        ratePerUnit = pricePerPiece * boxesPerCarton * piecesPerBox;
       } else {
-        // Use retail price
-        ratePerUnit = product.sale_price;
-        if (item.unit === 'g' && product.base_unit === 'kg') {
-          ratePerUnit = product.sale_price / 1000;
-        } else if (item.unit === 'box' && product.box_price) {
-          ratePerUnit = product.box_price;
-        }
+        ratePerUnit = pricePerPiece;
       }
     }
 

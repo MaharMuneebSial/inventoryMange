@@ -77,7 +77,7 @@ export default function PurchaseReturnList() {
 
   const handleViewDetails = async (returnRecord) => {
     setSelectedReturn(returnRecord);
-    await loadReturnItems(returnRecord.return_id);
+    await loadReturnItems(returnRecord.id);
     setShowDetailsModal(true);
   };
 
@@ -162,8 +162,8 @@ export default function PurchaseReturnList() {
 
   // Calculate totals
   const totalReturns = purchaseReturns.length;
-  const totalCreditAmount = purchaseReturns.reduce((sum, ret) => sum + parseFloat(ret.total_credit_amount || 0), 0);
-  const uniqueSuppliers = [...new Set(purchaseReturns.map(r => r.supplier_id))].length;
+  const totalCreditAmount = purchaseReturns.reduce((sum, ret) => sum + parseFloat(ret.refund_amount || 0), 0);
+  const uniqueSuppliers = [...new Set(purchaseReturns.map(r => r.supplier_name))].filter(s => s).length;
   const averageCredit = totalReturns > 0 ? totalCreditAmount / totalReturns : 0;
 
   return (
@@ -206,7 +206,7 @@ export default function PurchaseReturnList() {
             {/* Modal Header */}
             <div className="sticky top-0 bg-gradient-to-r from-teal-600 to-cyan-600 text-white px-4 py-3 rounded-t-lg">
               <div className="flex justify-between items-center">
-                <h3 className="text-sm font-bold">Purchase Return Details - {selectedReturn.return_id}</h3>
+                <h3 className="text-sm font-bold">Purchase Return Details - PR#{selectedReturn.id}</h3>
                 <button
                   onClick={closeModal}
                   className="text-white hover:text-gray-200 transition-colors"
@@ -224,11 +224,11 @@ export default function PurchaseReturnList() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 <div className="bg-gray-50 p-2 rounded-lg">
                   <p className="text-xs text-gray-600 font-medium mb-1">Return Date</p>
-                  <p className="text-xs font-semibold text-gray-900">{formatDate(selectedReturn.return_date)}</p>
+                  <p className="text-xs font-semibold text-gray-900">{formatDate(selectedReturn.created_at)}</p>
                 </div>
                 <div className="bg-gray-50 p-2 rounded-lg">
                   <p className="text-xs text-gray-600 font-medium mb-1">Return Time</p>
-                  <p className="text-xs font-semibold text-gray-900">{formatTime(selectedReturn.return_time)}</p>
+                  <p className="text-xs font-semibold text-gray-900">{formatTime(selectedReturn.created_at)}</p>
                 </div>
                 <div className="bg-gray-50 p-2 rounded-lg">
                   <p className="text-xs text-gray-600 font-medium mb-1">Original Purchase</p>
@@ -244,7 +244,7 @@ export default function PurchaseReturnList() {
                 </div>
                 <div className="bg-teal-50 p-2 rounded-lg border border-teal-200">
                   <p className="text-xs text-gray-600 font-medium mb-1">Total Credit</p>
-                  <p className="text-sm font-bold text-teal-600">Rs. {parseFloat(selectedReturn.total_credit_amount).toFixed(2)}</p>
+                  <p className="text-sm font-bold text-teal-600">Rs. {(parseFloat(selectedReturn.refund_amount) || 0).toFixed(2)}</p>
                 </div>
               </div>
 
@@ -267,11 +267,11 @@ export default function PurchaseReturnList() {
                       {returnItems.map((item) => (
                         <tr key={item.id} className="hover:bg-gray-50">
                           <td className="px-2 py-1.5 text-xs text-gray-900">{item.product_name}</td>
-                          <td className="px-2 py-1.5 text-xs text-gray-900">{item.quantity}</td>
+                          <td className="px-2 py-1.5 text-xs text-gray-900">{item.return_quantity}</td>
                           <td className="px-2 py-1.5 text-xs text-gray-900 uppercase">{item.unit}</td>
-                          <td className="px-2 py-1.5 text-xs text-gray-900">Rs. {parseFloat(item.rate_per_unit).toFixed(2)}</td>
-                          <td className="px-2 py-1.5 text-xs font-semibold text-teal-600">Rs. {parseFloat(item.credit_amount).toFixed(2)}</td>
-                          <td className="px-2 py-1.5 text-xs text-gray-600">{item.reason || '-'}</td>
+                          <td className="px-2 py-1.5 text-xs text-gray-900">Rs. {(parseFloat(item.purchase_price) || 0).toFixed(2)}</td>
+                          <td className="px-2 py-1.5 text-xs font-semibold text-teal-600">Rs. {(parseFloat(item.refund_amount) || 0).toFixed(2)}</td>
+                          <td className="px-2 py-1.5 text-xs text-gray-600">{item.reason || 'No reason provided'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -370,13 +370,13 @@ export default function PurchaseReturnList() {
                 ) : (
                   currentItems.map((returnRecord, index) => (
                     <tr
-                      key={returnRecord.return_id}
+                      key={returnRecord.id}
                       className={`hover:bg-teal-50 transition-colors ${
                         selectedRow === index ? 'ring-2 ring-teal-500 bg-teal-100' : ''
                       }`}
                     >
                       <td className="px-3 py-2 whitespace-nowrap">
-                        <span className="text-xs font-semibold text-teal-600">{returnRecord.return_id}</span>
+                        <span className="text-xs font-semibold text-teal-600">PR#{returnRecord.id}</span>
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
                         #{returnRecord.original_purchase_id}
@@ -385,16 +385,16 @@ export default function PurchaseReturnList() {
                         {returnRecord.supplier_name || 'N/A'}
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
-                        {formatDate(returnRecord.return_date)}
+                        {formatDate(returnRecord.created_at)}
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
-                        {formatTime(returnRecord.return_time)}
+                        {formatTime(returnRecord.created_at)}
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap">
-                        <span className="text-xs font-bold text-teal-600">Rs. {parseFloat(returnRecord.total_credit_amount).toFixed(2)}</span>
+                        <span className="text-xs font-bold text-teal-600">Rs. {(parseFloat(returnRecord.refund_amount) || 0).toFixed(2)}</span>
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
-                        {returnRecord.processed_by || 'N/A'}
+                        {returnRecord.processed_by || 'System'}
                       </td>
                       <td className="px-3 py-2 whitespace-nowrap text-xs font-medium">
                         <button
